@@ -128,7 +128,7 @@ p, h1, h2, h3, figure {
 }
 
 .nav {
-  display: flex;
+  display: none;
   flex: 1;
   justify-content: center;
   gap: clamp(12px, 1.8vw, 28px);
@@ -399,7 +399,7 @@ h1 {
   z-index: 15;
   display: flex;
   gap: 8px;
-  margin: calc(clamp(54px, 7vw, 84px) * -0.44) 0 clamp(24px, 3.2vw, 38px);
+  margin: calc(clamp(36px, 5vw, 64px) * -1) 0 clamp(24px, 3.2vw, 38px);
   overflow-x: auto;
   border: 1px solid var(--rule);
   padding: 9px;
@@ -527,9 +527,7 @@ h1 {
 }
 
 .full-itinerary {
-  margin-top: clamp(32px, 4vw, 48px);
-  border-top: 1px solid var(--rule);
-  padding-top: clamp(25px, 3vw, 34px);
+  margin-top: 0;
 }
 
 .subhead {
@@ -1801,7 +1799,7 @@ body > footer {
 
   .section-pager {
     top: 68px;
-    margin-top: -18px;
+    margin-top: -31px;
     margin-bottom: 20px;
     padding: 8px;
   }
@@ -1904,6 +1902,19 @@ body > footer {
     </header>
 
     <main>
+      <nav class="section-pager reveal" id="section-pager" aria-label="旅遊資料分頁">
+        <button class="page-tab active" type="button" data-page="schedule" aria-selected="true">每日行程</button>
+        <button class="page-tab" type="button" data-page="timeline" aria-selected="false">逐時行程</button>
+        <button class="page-tab" type="button" data-page="stay" aria-selected="false">住宿</button>
+        <button class="page-tab" type="button" data-page="transport" aria-selected="false">交通</button>
+        <button class="page-tab" type="button" data-page="tickets" aria-selected="false">門票</button>
+        <button class="page-tab" type="button" data-page="spots" aria-selected="false">景點</button>
+        <button class="page-tab" type="button" data-page="films" aria-selected="false">影片</button>
+        <button class="page-tab" type="button" data-page="finance" aria-selected="false">經費</button>
+        <button class="page-tab" type="button" data-page="personal" aria-selected="false">個人支出</button>
+        <button class="page-tab" type="button" data-page="notices" aria-selected="false">提醒</button>
+      </nav>
+
       <section class="hero" id="hero">
         <div class="hero-copy reveal">
           <p class="eyebrow">Sicilia · Campania · Basilicata · Puglia</p>
@@ -1958,18 +1969,6 @@ body > footer {
         </article>
       </section>
 
-      <nav class="section-pager reveal" id="section-pager" aria-label="旅遊資料分頁">
-        <button class="page-tab active" type="button" data-page="schedule" aria-selected="true">行程</button>
-        <button class="page-tab" type="button" data-page="stay" aria-selected="false">住宿</button>
-        <button class="page-tab" type="button" data-page="transport" aria-selected="false">交通</button>
-        <button class="page-tab" type="button" data-page="tickets" aria-selected="false">門票</button>
-        <button class="page-tab" type="button" data-page="spots" aria-selected="false">景點</button>
-        <button class="page-tab" type="button" data-page="films" aria-selected="false">影片</button>
-        <button class="page-tab" type="button" data-page="finance" aria-selected="false">預算</button>
-        <button class="page-tab" type="button" data-page="personal" aria-selected="false">個人</button>
-        <button class="page-tab" type="button" data-page="notices" aria-selected="false">提醒</button>
-      </nav>
-
       <section class="panel journey page-section" id="schedule" data-page="schedule">
         <header class="section-head reveal">
           <div>
@@ -1980,6 +1979,9 @@ body > footer {
         </header>
         <div class="day-filter reveal" id="day-filter" role="tablist" aria-label="選擇每日摘要"></div>
         <div class="day-grid" id="day-grid"></div>
+      </section>
+
+      <section class="panel journey page-section" id="timeline" data-page="timeline" hidden>
         <div class="full-itinerary reveal">
           <header class="subhead">
             <div>
