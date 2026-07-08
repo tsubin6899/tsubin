@@ -1,0 +1,46 @@
+{
+  "name": "南義大利之旅",
+  "short_name": "南義大利",
+  "description": "南義大利旅行行程、經費與分帳工具",
+  "lang": "zh-Hant",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fffdf8",
+  "theme_color": "#16736a",
+  "icons": [
+    {
+      "src": "/icons/italy-flag.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/italy-flag-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/italy-flag-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "旅行分帳",
+      "short_name": "分帳",
+      "url": "/expense-app/index.html",
+      "icons": [
+        {
+          "src": "/icons/italy-flag-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
