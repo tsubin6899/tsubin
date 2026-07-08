@@ -10,6 +10,8 @@
   var unsubscribeSettings = null;
   var syncMode = "local";
   var isRemoteUpdate = false;
+  var syncWatchdog = null;
+  var lastCloudSnapshotAt = 0;
 
   var money = new Intl.NumberFormat("zh-TW", {
     style: "currency",
@@ -141,6 +143,12 @@
   function subscribeTrip() {
     stopSubscriptions();
     setSyncStatus("同步中：" + state.tripCode);
+    lastCloudSnapshotAt = 0;
+    syncWatchdog = window.setTimeout(function () {
+      if (syncMode === "firebase" && !lastCloudSnapshotAt) {
+        setSyncStatus("仍在等待雲端回應：請確認 Firestore Database 與 Cloud Firestore API 已啟用。");
+      }
+    }, 9000);
     var root = tripRef();
 
     unsubscribeSettings = root.collection("settings").doc("main").onSnapshot({ includeMetadataChanges: true }, function (doc) {
@@ -165,6 +173,7 @@
 
     unsubscribeExpenses = root.collection("expenses").onSnapshot({ includeMetadataChanges: true }, function (snapshot) {
       isRemoteUpdate = true;
+      if (!snapshot.metadata.fromCache) lastCloudSnapshotAt = Date.now();
       state.expenses = snapshot.docs.map(function (doc) {
         return normalizeExpense(Object.assign({ id: doc.id }, doc.data()));
       }).sort(function (a, b) {
@@ -182,8 +191,10 @@
   function stopSubscriptions() {
     if (unsubscribeExpenses) unsubscribeExpenses();
     if (unsubscribeSettings) unsubscribeSettings();
+    if (syncWatchdog) window.clearTimeout(syncWatchdog);
     unsubscribeExpenses = null;
     unsubscribeSettings = null;
+    syncWatchdog = null;
   }
 
   function tripRef() {
@@ -582,6 +593,9 @@
   }
 
   function readableError(error) {
+    if (error && /SERVICE_DISABLED|firestore.googleapis.com/i.test(error.message || "")) {
+      return "Cloud Firestore API 尚未啟用。請到 Firebase 啟用 Firestore Database。";
+    }
     return (error && (error.code || error.message)) ? (error.code || error.message) : "請檢查 Firebase 權限或網路。";
   }
 
