@@ -141,6 +141,22 @@ p, h1, h2, h3, figure {
   width: 100%;
 }
 
+.mobile-expense-link {
+  display: none;
+  flex-shrink: 0;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(185, 80, 57, 0.24);
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  color: var(--vermilion);
+  background: var(--vermilion-soft);
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
 .updated {
   flex-shrink: 0;
   border-left: 1px solid var(--rule);
@@ -1529,6 +1545,10 @@ body > footer {
     display: none;
   }
 
+  .mobile-expense-link {
+    display: inline-flex;
+  }
+
   .topbar {
     justify-content: space-between;
   }
@@ -1665,10 +1685,11 @@ body > footer {
   .topbar {
     min-height: 68px;
     padding: 0 17px;
+    gap: 10px;
   }
 
   .updated {
-    padding-left: 12px;
+    display: none;
   }
 
   h1 {
