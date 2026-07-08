@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>南義大利旅行記帳與分帳</title>
+    <meta name="description" content="2026 南義大利旅行記帳、多人分帳與結算工具">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <a class="brand" href="../index.html" aria-label="回到旅行總覽">
+        <span>Sud Italia</span>
+        <strong>旅行記帳</strong>
+      </a>
+      <nav class="top-actions" aria-label="主要操作">
+        <button class="icon-button" id="exportCsv" type="button" title="匯出 CSV" aria-label="匯出 CSV">
+          <span aria-hidden="true">CSV</span>
+        </button>
+        <button class="icon-button danger" id="resetData" type="button" title="清空資料" aria-label="清空資料">
+          <span aria-hidden="true">Reset</span>
+        </button>
+      </nav>
+    </header>
+
+    <main class="app-shell">
+      <section class="summary-grid" aria-label="旅行支出總覽">
+        <article class="metric total">
+          <span>總支出</span>
+          <strong id="totalSpent">NT$ 0</strong>
+          <small id="expenseCount">0 筆支出</small>
+        </article>
+        <article class="metric">
+          <span>平均每人</span>
+          <strong id="averageShare">NT$ 0</strong>
+          <small id="travelerCount">0 位旅伴</small>
+        </article>
+        <article class="metric">
+          <span>待結算</span>
+          <strong id="settleCount">0 筆</strong>
+          <small>最少轉帳建議</small>
+        </article>
+        <article class="metric">
+          <span>歐元匯率</span>
+          <label class="rate-control">
+            <input id="eurRate" type="number" min="0" step="0.01" inputmode="decimal">
+          </label>
+          <small>1 EUR 折合 TWD</small>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <form class="entry-panel" id="expenseForm">
+          <header class="panel-header">
+            <div>
+              <p>New Expense</p>
+              <h1>新增一筆支出</h1>
+            </div>
+            <button class="primary-button" type="submit">加入</button>
+          </header>
+
+          <div class="form-grid">
+            <label>
+              日期
+              <input id="date" type="date" required>
+            </label>
+            <label>
+              項目
+              <input id="title" type="text" placeholder="晚餐、車票、門票" required>
+            </label>
+            <label>
+              分類
+              <select id="category">
+                <option>餐飲</option>
+                <option>交通</option>
+                <option>住宿</option>
+                <option>門票</option>
+                <option>購物</option>
+                <option>其他</option>
+              </select>
+            </label>
+            <label>
+              金額
+              <input id="amount" type="number" min="0" step="0.01" inputmode="decimal" required>
+            </label>
+            <label>
+              幣別
+              <select id="currency">
+                <option value="TWD">TWD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </label>
+            <label>
+              付款人
+              <select id="paidBy"></select>
+            </label>
+          </div>
+
+          <div class="split-box">
+            <div class="split-head">
+              <h2>分攤對象</h2>
+              <div class="tiny-actions">
+                <button type="button" id="selectAll">全選</button>
+                <button type="button" id="selectNone">清除</button>
+              </div>
+            </div>
+            <div class="traveler-checks" id="splitWith"></div>
+          </div>
+        </form>
+
+        <aside class="people-panel">
+          <header class="panel-header compact">
+            <div>
+              <p>People</p>
+              <h2>旅伴</h2>
+            </div>
+          </header>
+          <form class="person-add" id="personForm">
+            <input id="personName" type="text" placeholder="新增姓名">
+            <button type="submit">加入</button>
+          </form>
+          <div class="person-list" id="personList"></div>
+        </aside>
+      </section>
+
+      <section class="analysis-grid">
+        <article class="panel">
+          <header class="panel-header compact">
+            <div>
+              <p>Settlement</p>
+              <h2>結算建議</h2>
+            </div>
+          </header>
+          <div class="settlement-list" id="settlements"></div>
+        </article>
+
+        <article class="panel">
+          <header class="panel-header compact">
+            <div>
+              <p>Balance</p>
+              <h2>每人明細</h2>
+            </div>
+          </header>
+          <div class="balance-list" id="balances"></div>
+        </article>
+
+        <article class="panel">
+          <header class="panel-header compact">
+            <div>
+              <p>Categories</p>
+              <h2>分類支出</h2>
+            </div>
+          </header>
+          <div class="category-list" id="categories"></div>
+        </article>
+      </section>
+
+      <section class="ledger-panel">
+        <header class="panel-header">
+          <div>
+            <p>Ledger</p>
+            <h2>支出紀錄</h2>
+          </div>
+          <select id="filterCategory" aria-label="篩選分類">
+            <option value="全部">全部分類</option>
+            <option>餐飲</option>
+            <option>交通</option>
+            <option>住宿</option>
+            <option>門票</option>
+            <option>購物</option>
+            <option>其他</option>
+          </select>
+        </header>
+        <div class="ledger-list" id="ledger"></div>
+      </section>
+    </main>
+
+    <template id="emptyTemplate">
+      <div class="empty-state">
+        <strong>目前沒有資料</strong>
+        <span>新增第一筆支出後，這裡會自動更新。</span>
+      </div>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
