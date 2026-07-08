@@ -129,6 +129,7 @@
     try {
       if (!window.firebase.apps.length) window.firebase.initializeApp(firebaseSettings.config);
       db = window.firebase.firestore();
+      db.settings({ experimentalAutoDetectLongPolling: true });
       syncMode = "firebase";
       subscribeTrip();
     } catch (error) {
@@ -142,7 +143,7 @@
     setSyncStatus("同步中：" + state.tripCode);
     var root = tripRef();
 
-    unsubscribeSettings = root.collection("settings").doc("main").onSnapshot(function (doc) {
+    unsubscribeSettings = root.collection("settings").doc("main").onSnapshot({ includeMetadataChanges: true }, function (doc) {
       isRemoteUpdate = true;
       if (doc.exists) {
         var data = doc.data() || {};
@@ -158,21 +159,23 @@
       saveState();
       render();
       isRemoteUpdate = false;
-    }, function () {
-      setSyncStatus("同步失敗：請檢查 Firebase 權限設定。");
+    }, function (error) {
+      setSyncStatus("同步失敗：" + readableError(error));
     });
 
-    unsubscribeExpenses = root.collection("expenses").orderBy("createdAt", "desc").onSnapshot(function (snapshot) {
+    unsubscribeExpenses = root.collection("expenses").onSnapshot({ includeMetadataChanges: true }, function (snapshot) {
       isRemoteUpdate = true;
       state.expenses = snapshot.docs.map(function (doc) {
         return normalizeExpense(Object.assign({ id: doc.id }, doc.data()));
+      }).sort(function (a, b) {
+        return expenseTime(b) - expenseTime(a);
       });
       saveState();
       render();
-      setSyncStatus("已同步：" + state.tripCode + "，共 " + state.expenses.length + " 筆支出。");
+      setSyncStatus(syncStatusText(snapshot));
       isRemoteUpdate = false;
-    }, function () {
-      setSyncStatus("同步失敗：請檢查 Firebase 權限設定。");
+    }, function (error) {
+      setSyncStatus("同步失敗：" + readableError(error));
     });
   }
 
@@ -188,7 +191,7 @@
   }
 
   function safeTripCode(code) {
-    return String(code || defaults.tripCode).trim().replace(/[\/#?[\]]/g, "-").slice(0, 40) || defaults.tripCode;
+    return String(code || defaults.tripCode).trim().replace(/[\/#?[\]]/g, "-").toUpperCase().slice(0, 40) || defaults.tripCode;
   }
 
   function writeSettings() {
@@ -233,6 +236,7 @@
       paidBy: expense.paidBy || "",
       splitWith: Array.isArray(expense.splitWith) ? expense.splitWith : [],
       createdAt: expense.createdAt || null,
+      clientCreatedAt: Number(expense.clientCreatedAt || 0),
       twd: toTwd(amount, currencyCode)
     };
   }
@@ -265,9 +269,13 @@
         currency: expense.currency,
         paidBy: expense.paidBy,
         splitWith: expense.splitWith,
+        clientCreatedAt: Date.now(),
         createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
-      }).then(afterExpenseSaved).catch(function () {
-        setSyncStatus("新增失敗：請檢查 Firebase 權限或網路。");
+      }).then(function () {
+        afterExpenseSaved();
+        setSyncStatus("新增成功，等待其他裝置同步：" + state.tripCode);
+      }).catch(function (error) {
+        setSyncStatus("新增失敗：" + readableError(error));
       });
     } else {
       state.expenses.unshift(expense);
@@ -311,8 +319,8 @@
 
   function deleteExpense(id) {
     if (syncMode === "firebase") {
-      tripRef().collection("expenses").doc(id).delete().catch(function () {
-        setSyncStatus("刪除失敗：請檢查 Firebase 權限或網路。");
+      tripRef().collection("expenses").doc(id).delete().catch(function (error) {
+        setSyncStatus("刪除失敗：" + readableError(error));
       });
       return;
     }
@@ -359,8 +367,8 @@
         state.expenses = [];
         saveState();
         render();
-      }).catch(function () {
-        setSyncStatus("清空失敗：請檢查 Firebase 權限或網路。");
+      }).catch(function (error) {
+        setSyncStatus("清空失敗：" + readableError(error));
       });
       return;
     }
@@ -558,6 +566,23 @@
 
   function byAmountDesc(a, b) {
     return b.amount - a.amount;
+  }
+
+  function expenseTime(expense) {
+    if (expense.clientCreatedAt) return expense.clientCreatedAt;
+    if (expense.createdAt && typeof expense.createdAt.toMillis === "function") return expense.createdAt.toMillis();
+    if (expense.createdAt && expense.createdAt.seconds) return expense.createdAt.seconds * 1000;
+    return 0;
+  }
+
+  function syncStatusText(snapshot) {
+    var source = snapshot.metadata.fromCache ? "本機快取" : "雲端";
+    var pending = snapshot.metadata.hasPendingWrites ? "，尚有資料待上傳" : "，雲端已確認";
+    return "已同步：" + state.tripCode + "（" + source + pending + "，共 " + state.expenses.length + " 筆支出）";
+  }
+
+  function readableError(error) {
+    return (error && (error.code || error.message)) ? (error.code || error.message) : "請檢查 Firebase 權限或網路。";
   }
 
   function emptyHtml(text) {
