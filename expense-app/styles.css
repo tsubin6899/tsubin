@@ -426,6 +426,65 @@ button:focus-visible {
   max-width: 190px;
 }
 
+.period-panel {
+  margin: 18px 0;
+}
+
+.period-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.55fr) 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.period-grid h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.period-grid p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.period-list {
+  display: grid;
+  gap: 10px;
+}
+
+.period-card {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.period-card div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.period-card span {
+  color: var(--muted);
+}
+
+.period-card ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--ink);
+}
+
+.status-tag {
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--mint);
+  color: var(--teal);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
 .ledger-row {
   align-items: flex-start;
 }
@@ -466,7 +525,8 @@ button:focus-visible {
   .summary-grid,
   .analysis-grid,
   .workspace,
-  .sync-panel {
+  .sync-panel,
+  .period-grid {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -502,7 +562,8 @@ button:focus-visible {
   .workspace,
   .form-grid,
   .sync-panel,
-  .trip-code-form {
+  .trip-code-form,
+  .period-grid {
     grid-template-columns: 1fr;
   }
 

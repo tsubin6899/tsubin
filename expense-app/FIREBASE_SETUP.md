@@ -54,4 +54,5 @@ Firestore 會使用：
 ```txt
 tripExpenseBooks/{旅行代碼}/settings/main
 tripExpenseBooks/{旅行代碼}/expenses/{自動ID}
+tripExpenseBooks/{旅行代碼}/settlementPeriods/{自動ID}
 ```
