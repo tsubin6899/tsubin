@@ -1,62 +1,62 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-Hant">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>?儔憭批??閮董??撣?/title>
-    <meta name="description" content="2026 ?儔憭批???單?閮董??鈭箏?撣唾???蝯董撌亙">
+    <title>南義大利旅行記帳與分帳</title>
+    <meta name="description" content="2026 南義大利旅行即時記帳、多人分帳與分期結帳工具">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <header class="app-header">
-      <a class="brand" href="../index.html" aria-label="???蝮質汗">
+      <a class="brand" href="../index.html" aria-label="回到旅行總覽">
         <span>Sud Italia</span>
-        <strong>??閮董</strong>
+        <strong>旅行記帳</strong>
       </a>
-      <nav class="top-actions" aria-label="銝餉???">
+      <nav class="top-actions" aria-label="主要操作">
         <button class="icon-button" id="exportCsv" type="button">CSV</button>
         <button class="icon-button danger" id="resetData" type="button">Reset</button>
       </nav>
     </header>
 
     <main class="app-shell">
-      <section class="sync-panel" aria-label="?郊閮剖?">
+      <section class="sync-panel" aria-label="同步設定">
         <div>
           <p class="eyebrow">Sync</p>
-          <h1>?勗???撣單</h1>
-          <span id="syncStatus">?郊皞?銝?/span>
+          <h1>共同旅行帳本</h1>
+          <span id="syncStatus">同步準備中</span>
         </div>
         <form class="trip-code-form" id="tripCodeForm">
           <label>
-            ??隞?Ⅳ
+            旅行代碼
             <input id="tripCode" type="text" autocomplete="off" spellcheck="false" maxlength="40">
           </label>
-          <button class="primary-button" type="submit">憟</button>
+          <button class="primary-button" type="submit">套用</button>
         </form>
       </section>
 
-      <section class="summary-grid" aria-label="?芰??臬蝮質汗">
+      <section class="summary-grid" aria-label="未結支出總覽">
         <article class="metric total">
-          <span>?芰??臬</span>
+          <span>未結支出</span>
           <strong id="totalSpent">NT$ 0</strong>
-          <small id="expenseCount">0 蝑蝯??/small>
+          <small id="expenseCount">0 筆未結支出</small>
         </article>
         <article class="metric">
-          <span>撟喳?瘥犖</span>
+          <span>平均每人</span>
           <strong id="averageShare">NT$ 0</strong>
-          <small id="travelerCount">0 雿?隡?/small>
+          <small id="travelerCount">0 位旅伴</small>
         </article>
         <article class="metric">
-          <span>敺?蝞?/span>
-          <strong id="settleCount">0 蝑?/strong>
-          <small>?祆??撠?撣喳遣霅?/small>
+          <span>待結算</span>
+          <strong id="settleCount">0 筆</strong>
+          <small>本期最少轉帳建議</small>
         </article>
         <article class="metric">
-          <span>甇??舐?</span>
+          <span>歐元匯率</span>
           <label class="rate-control">
             <input id="eurRate" type="number" min="0" step="0.01" inputmode="decimal">
           </label>
-          <small>1 EUR ?? TWD</small>
+          <small>1 EUR 折合 TWD</small>
         </article>
       </section>
 
@@ -65,42 +65,54 @@
           <header class="panel-header">
             <div>
               <p>New Expense</p>
-              <h2>?啣?銝蝑??/h2>
+              <h2>新增一筆支出</h2>
             </div>
-            <button class="primary-button" type="submit">?</button>
+            <button class="primary-button" type="submit">加入</button>
           </header>
 
           <div class="form-grid">
-            <label>?交? <input id="date" type="date" required></label>
-            <label>? <input id="title" type="text" placeholder="????蟡具?蟡? required></label>
             <label>
-              ??
+              日期
+              <input id="date" type="date" required>
+            </label>
+            <label>
+              項目
+              <input id="title" type="text" placeholder="晚餐、車票、門票" required>
+            </label>
+            <label>
+              分類
               <select id="category">
-                <option>擗ㄡ</option>
-                <option>鈭日?/option>
-                <option>雿挪</option>
-                <option>?蟡?/option>
-                <option>鞈潛</option>
-                <option>?嗡?</option>
+                <option>餐飲</option>
+                <option>交通</option>
+                <option>住宿</option>
+                <option>門票</option>
+                <option>購物</option>
+                <option>其他</option>
               </select>
             </label>
-            <label>?? <input id="amount" type="number" min="0" step="0.01" inputmode="decimal" required></label>
             <label>
-              撟?
+              金額
+              <input id="amount" type="number" min="0" step="0.01" inputmode="decimal" required>
+            </label>
+            <label>
+              幣別
               <select id="currency">
                 <option value="TWD">TWD</option>
                 <option value="EUR">EUR</option>
               </select>
             </label>
-            <label>隞狡鈭?<select id="paidBy"></select></label>
+            <label>
+              付款人
+              <select id="paidBy"></select>
+            </label>
           </div>
 
           <div class="split-box">
             <div class="split-head">
-              <h2>?撠情</h2>
+              <h2>分攤對象</h2>
               <div class="tiny-actions">
-                <button type="button" id="selectAll">?券</button>
-                <button type="button" id="selectNone">皜</button>
+                <button type="button" id="selectAll">全選</button>
+                <button type="button" id="selectNone">清除</button>
               </div>
             </div>
             <div class="traveler-checks" id="splitWith"></div>
@@ -111,12 +123,12 @@
           <header class="panel-header compact">
             <div>
               <p>People</p>
-              <h2>?撈</h2>
+              <h2>旅伴</h2>
             </div>
           </header>
           <form class="person-add" id="personForm">
-            <input id="personName" type="text" placeholder="?啣?憪?">
-            <button type="submit">?</button>
+            <input id="personName" type="text" placeholder="新增姓名">
+            <button type="submit">加入</button>
           </form>
           <div class="person-list" id="personList"></div>
         </aside>
@@ -127,7 +139,7 @@
           <header class="panel-header compact">
             <div>
               <p>Settlement</p>
-              <h2>?祆?蝯?撱箄降</h2>
+              <h2>本期結算建議</h2>
             </div>
           </header>
           <div class="settlement-list" id="settlements"></div>
@@ -137,7 +149,7 @@
           <header class="panel-header compact">
             <div>
               <p>Balance</p>
-              <h2>瘥犖?敦</h2>
+              <h2>每人明細</h2>
             </div>
           </header>
           <div class="balance-list" id="balances"></div>
@@ -147,7 +159,7 @@
           <header class="panel-header compact">
             <div>
               <p>Categories</p>
-              <h2>???臬</h2>
+              <h2>分類支出</h2>
             </div>
           </header>
           <div class="category-list" id="categories"></div>
@@ -158,14 +170,14 @@
         <header class="panel-header">
           <div>
             <p>Close Period</p>
-            <h2>銝剝?撣?/h2>
+            <h2>中途結帳</h2>
           </div>
-          <button class="primary-button" id="closePeriod" type="button">撱箇??祆?蝯董</button>
+          <button class="primary-button" id="closePeriod" type="button">建立本期結帳</button>
         </header>
         <div class="period-grid">
           <div>
-            <h3>?見閮剛???拙???</h3>
-            <p>瘥憭拇?銝甈∠?撣喉?APP ???桀??芰??臬甇豢?銝?甈∴?銋??啁?撣喟???園?憪敞閮風?脫甈∩???撣喳遣霅堆??嫣噶?嗅?詨???/p>
+            <h3>適合每兩天結一次</h3>
+            <p>每次結帳會把目前未結支出歸成一個批次，之後新的帳目會從零開始累計。歷史批次保留轉帳建議，方便當場核對。</p>
           </div>
           <div class="period-list" id="periods"></div>
         </div>
@@ -175,16 +187,16 @@
         <header class="panel-header">
           <div>
             <p>Ledger</p>
-            <h2>?臬蝝??/h2>
+            <h2>支出紀錄</h2>
           </div>
-          <select id="filterCategory" aria-label="蝭拚??">
-            <option value="?券">?券??</option>
-            <option>擗ㄡ</option>
-            <option>鈭日?/option>
-            <option>雿挪</option>
-            <option>?蟡?/option>
-            <option>鞈潛</option>
-            <option>?嗡?</option>
+          <select id="filterCategory" aria-label="篩選分類">
+            <option value="全部">全部分類</option>
+            <option>餐飲</option>
+            <option>交通</option>
+            <option>住宿</option>
+            <option>門票</option>
+            <option>購物</option>
+            <option>其他</option>
           </select>
         </header>
         <div class="ledger-list" id="ledger"></div>
@@ -197,4 +209,3 @@
     <script src="app.js"></script>
   </body>
 </html>
-
