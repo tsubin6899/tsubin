@@ -28,6 +28,15 @@
     periods: []
   };
 
+  var categoryIcons = {
+    "餐飲": '<path d="M7 3v8"></path><path d="M5 3v4"></path><path d="M9 3v4"></path><path d="M5 7h4"></path><path d="M7 11v10"></path><path d="M17 3c1.7 2.1 2.2 5.4 1.2 8.6-.4 1.3-1.2 2.4-2.2 3V21"></path>',
+    "交通": '<path d="M4 16l4-8h8l4 8"></path><path d="M6 16h12"></path><circle cx="7" cy="18" r="2"></circle><circle cx="17" cy="18" r="2"></circle><path d="M8 8l-2-3"></path><path d="M16 8l2-3"></path>',
+    "住宿": '<path d="M4 11V5"></path><path d="M4 14h16"></path><path d="M20 14v5"></path><path d="M4 19v-8h6a4 4 0 0 1 4 4"></path><path d="M14 15h6"></path>',
+    "門票": '<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4Z"></path><path d="M13 5v14"></path>',
+    "購物": '<path d="M6 8h12l-1 12H7Z"></path><path d="M9 8a3 3 0 0 1 6 0"></path>',
+    "其他": '<circle cx="7" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="17" cy="12" r="1.6"></circle>'
+  };
+
   var state = loadState();
   var elements = {};
 
@@ -573,8 +582,8 @@
     }).sort(byAmountDesc);
     elements.categories.innerHTML = rows.map(function (row) {
       var width = total ? Math.round(row.amount / total * 100) : 0;
-      return '<div class="category-row"><div class="category-top"><strong>' + escapeHtml(row.name) +
-        "</strong><span>" + currency(row.amount) + "</span></div>" +
+      return '<div class="category-row"><div class="category-top"><strong class="category-label">' +
+        categoryIcon(row.name) + '<span>' + escapeHtml(row.name) + "</span></strong><span>" + currency(row.amount) + "</span></div>" +
         '<div class="bar-track"><div class="bar-fill" style="width:' + width + '%"></div></div></div>';
     }).join("") || emptyHtml("目前沒有分類資料");
   }
@@ -589,7 +598,8 @@
       var status = expense.settlementId ? "已結帳" : "未結";
       return '<div class="ledger-row"><div class="ledger-main"><span class="ledger-title">' +
         escapeHtml(expense.title) + ' <small class="status-tag">' + status + '</small></span><span class="ledger-meta">' +
-        escapeHtml(expense.date) + " / " + escapeHtml(expense.category) + " / " + escapeHtml(expense.paidBy) +
+        escapeHtml(expense.date) + ' / <span class="category-inline">' + categoryIcon(expense.category) +
+        '<span>' + escapeHtml(expense.category) + '</span></span> / ' + escapeHtml(expense.paidBy) +
         " 先付 / 分攤 " + expense.splitWith.map(escapeHtml).join("、") +
         '</span></div><div class="ledger-amount">' + currency(expense.twd) +
         '<div class="ledger-meta">' + original + '</div></div><button type="button" data-id="' +
@@ -631,6 +641,11 @@
 
   function optionHtml(value) {
     return '<option value="' + escapeHtml(value) + '">' + escapeHtml(value) + "</option>";
+  }
+
+  function categoryIcon(category) {
+    var paths = categoryIcons[category] || categoryIcons["其他"];
+    return '<span class="category-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">' + paths + "</svg></span>";
   }
 
   function csvCell(value) {

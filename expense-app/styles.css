@@ -405,8 +405,50 @@ button:focus-visible {
 
 .category-top {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.category-label,
+.category-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-icon {
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(22, 115, 106, 0.16);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--teal);
+  background: var(--mint);
+  flex: 0 0 auto;
+}
+
+.category-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.category-inline .category-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+}
+
+.category-inline .category-icon svg {
+  width: 15px;
+  height: 15px;
 }
 
 .bar-track {
