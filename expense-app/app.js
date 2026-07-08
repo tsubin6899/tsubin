@@ -56,7 +56,8 @@
       "travelerCount", "settleCount", "eurRate", "expenseForm", "date", "title", "category",
       "amount", "currency", "paidBy", "splitWith", "selectAll", "selectNone", "personForm",
       "personName", "personList", "settlements", "balances", "categories", "ledger",
-      "filterCategory", "exportCsv", "resetData", "closePeriod", "periods"
+      "filterCategory", "exportCsv", "resetData", "closePeriod", "periods",
+      "tripGrandTotal", "tripGrandCount", "tripPerPerson", "tripPeopleCount", "tripCategoryChart"
     ].forEach(function (id) {
       elements[id] = document.getElementById(id);
     });
@@ -475,6 +476,7 @@
     renderCategories();
     renderLedger();
     renderPeriods();
+    renderTripTotals();
   }
 
   function renderPeopleControls() {
@@ -618,6 +620,32 @@
       return '<article class="period-card"><div><strong>' + escapeHtml(period.title) + '</strong><span>' +
         period.expenseIds.length + " 筆 / " + currency(period.total) + '</span></div><ul>' + transfers + "</ul></article>";
     }).join("") : emptyHtml("尚未建立結帳批次");
+  }
+
+  function renderTripTotals() {
+    var expenses = state.expenses.slice();
+    var total = expenses.reduce(sumTwd, 0);
+    elements.tripGrandTotal.textContent = currency(total);
+    elements.tripGrandCount.textContent = expenses.length + " 筆支出";
+    elements.tripPerPerson.textContent = currency(state.people.length ? total / state.people.length : 0);
+    elements.tripPeopleCount.textContent = state.people.length + " 位旅伴";
+
+    var groups = {};
+    expenses.forEach(function (expense) {
+      groups[expense.category] = (groups[expense.category] || 0) + expense.twd;
+    });
+    var rows = Object.keys(groups).map(function (name) {
+      return { name: name, amount: groups[name] };
+    }).sort(byAmountDesc);
+
+    elements.tripCategoryChart.innerHTML = rows.length ? rows.map(function (row) {
+      var width = total ? Math.max(4, Math.round(row.amount / total * 100)) : 0;
+      var share = total ? Math.round(row.amount / total * 100) : 0;
+      return '<div class="trip-category-row"><div class="trip-category-head"><strong class="category-label">' +
+        categoryIcon(row.name) + '<span>' + escapeHtml(row.name) + '</span></strong><span>' +
+        currency(row.amount) + ' · ' + share + '%</span></div><div class="bar-track"><div class="bar-fill" style="width:' +
+        width + '%"></div></div></div>';
+    }).join("") : emptyHtml("目前沒有旅行支出資料");
   }
 
   function exportCsv() {

@@ -517,6 +517,60 @@ button:focus-visible {
   color: var(--ink);
 }
 
+.trip-total-panel {
+  margin-top: 18px;
+}
+
+.trip-total-grid {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.32fr) minmax(210px, 0.32fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.trip-total-feature {
+  min-height: 154px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #fff;
+}
+
+.trip-total-feature span,
+.trip-total-feature small,
+.trip-category-head span {
+  color: var(--muted);
+}
+
+.trip-total-feature strong {
+  color: var(--teal);
+  font-size: clamp(1.65rem, 3vw, 2.45rem);
+  line-height: 1.08;
+}
+
+.trip-category-chart {
+  display: grid;
+  gap: 10px;
+}
+
+.trip-category-row {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.trip-category-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .status-tag {
   margin-left: 6px;
   padding: 2px 6px;
@@ -568,8 +622,13 @@ button:focus-visible {
   .analysis-grid,
   .workspace,
   .sync-panel,
-  .period-grid {
+  .period-grid,
+  .trip-total-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .trip-category-chart {
+    grid-column: 1 / -1;
   }
 
   .sync-panel {
@@ -605,8 +664,18 @@ button:focus-visible {
   .form-grid,
   .sync-panel,
   .trip-code-form,
-  .period-grid {
+  .period-grid,
+  .trip-total-grid {
     grid-template-columns: 1fr;
+  }
+
+  .trip-category-chart {
+    grid-column: auto;
+  }
+
+  .trip-category-head {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .panel-header,
