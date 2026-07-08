@@ -157,6 +157,14 @@ p, h1, h2, h3, figure {
   width: 100%;
 }
 
+.nav a.active {
+  color: var(--vermilion);
+}
+
+.nav a.active::after {
+  width: 100%;
+}
+
 .mobile-expense-link {
   display: none;
   flex-shrink: 0;
@@ -383,6 +391,49 @@ h1 {
   border: 1px solid var(--rule);
   background: rgba(255, 255, 255, 0.86);
   padding: clamp(22px, 3vw, 38px);
+}
+
+.section-pager {
+  position: sticky;
+  top: 78px;
+  z-index: 15;
+  display: flex;
+  gap: 8px;
+  margin: calc(clamp(54px, 7vw, 84px) * -0.44) 0 clamp(24px, 3.2vw, 38px);
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  padding: 9px;
+  background: rgba(255, 253, 248, 0.96);
+  backdrop-filter: blur(12px);
+  scrollbar-width: thin;
+}
+
+.page-tab {
+  flex: 0 0 auto;
+  min-width: 72px;
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: var(--paper-light);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-family: var(--body);
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.page-tab:hover,
+.page-tab.active {
+  border-color: var(--vermilion);
+  background: var(--vermilion-soft);
+  color: var(--vermilion);
+}
+
+.page-section[hidden] {
+  display: none !important;
 }
 
 .journey, .spots, .notices {
@@ -1569,6 +1620,10 @@ body > footer {
     justify-content: space-between;
   }
 
+  .section-pager {
+    top: 68px;
+  }
+
   .hero {
     grid-template-columns: 1fr 0.86fr;
   }
@@ -1744,6 +1799,20 @@ body > footer {
     padding: 20px 15px;
   }
 
+  .section-pager {
+    top: 68px;
+    margin-top: -18px;
+    margin-bottom: 20px;
+    padding: 8px;
+  }
+
+  .page-tab {
+    min-width: 68px;
+    min-height: 38px;
+    padding: 7px 12px;
+    font-size: 0.8rem;
+  }
+
   .section-head {
     align-items: start;
     flex-direction: column;
@@ -1889,7 +1958,19 @@ body > footer {
         </article>
       </section>
 
-      <section class="panel journey" id="schedule">
+      <nav class="section-pager reveal" id="section-pager" aria-label="旅遊資料分頁">
+        <button class="page-tab active" type="button" data-page="schedule" aria-selected="true">行程</button>
+        <button class="page-tab" type="button" data-page="stay" aria-selected="false">住宿</button>
+        <button class="page-tab" type="button" data-page="transport" aria-selected="false">交通</button>
+        <button class="page-tab" type="button" data-page="tickets" aria-selected="false">門票</button>
+        <button class="page-tab" type="button" data-page="spots" aria-selected="false">景點</button>
+        <button class="page-tab" type="button" data-page="films" aria-selected="false">影片</button>
+        <button class="page-tab" type="button" data-page="finance" aria-selected="false">預算</button>
+        <button class="page-tab" type="button" data-page="personal" aria-selected="false">個人</button>
+        <button class="page-tab" type="button" data-page="notices" aria-selected="false">提醒</button>
+      </nav>
+
+      <section class="panel journey page-section" id="schedule" data-page="schedule">
         <header class="section-head reveal">
           <div>
             <p class="eyebrow">Itinerary</p>
@@ -1911,7 +1992,7 @@ body > footer {
         </div>
       </section>
 
-      <section class="panel" id="stay">
+      <section class="panel page-section" id="stay" data-page="stay" hidden>
         <header class="section-head reveal">
           <div>
             <p class="eyebrow">Accommodation</p>
@@ -1922,7 +2003,7 @@ body > footer {
         <div class="stay-track" id="stay-track"></div>
       </section>
 
-      <section class="mobility-grid" id="transport">
+      <section class="mobility-grid page-section" id="transport" data-page="transport" hidden>
         <article class="panel reveal">
           <header class="section-head compact">
             <div>
@@ -1945,12 +2026,12 @@ body > footer {
         </article>
       </section>
 
-      <section class="visual-break reveal" aria-label="南義大利阿瑪菲海岸風景">
+      <section class="visual-break reveal page-section" data-page="spots" aria-label="南義大利阿瑪菲海岸風景" hidden>
         <img src="assets/amalfi-coast-photo.webp" alt="碧藍海面與峭壁村落交織的阿瑪菲海岸風景">
         <p>穿越海岸與石窟古城，從阿瑪菲的藍一路抵達拿坡里的黃昏。</p>
       </section>
 
-      <section class="panel ticket-panel" id="tickets">
+      <section class="panel ticket-panel page-section" id="tickets" data-page="tickets" hidden>
         <header class="section-head reveal">
           <div>
             <p class="eyebrow">Admission</p>
@@ -1961,7 +2042,7 @@ body > footer {
         <div class="ticket-list" id="ticket-list"></div>
       </section>
 
-      <section class="panel spots" id="spots">
+      <section class="panel spots page-section" id="spots" data-page="spots" hidden>
         <header class="section-head reveal">
           <div>
             <p class="eyebrow">Places Guide</p>
@@ -1980,7 +2061,7 @@ body > footer {
         </div>
       </section>
 
-      <section class="panel films" id="films">
+      <section class="panel films page-section" id="films" data-page="films" hidden>
         <header class="section-head reveal">
           <div>
             <p class="eyebrow">Film Journal</p>
@@ -1992,7 +2073,7 @@ body > footer {
         <article class="article-reader script-reader reveal" id="episode-reader"></article>
       </section>
 
-      <section class="finance-layout" id="finance">
+      <section class="finance-layout page-section" id="finance" data-page="finance" hidden>
         <div class="panel finance-summary reveal">
           <header class="section-head compact">
             <div>
@@ -2027,7 +2108,7 @@ body > footer {
         </div>
       </section>
 
-      <section class="panel personal-cost" id="personal">
+      <section class="panel personal-cost page-section" id="personal" data-page="personal" hidden>
         <header class="section-head reveal">
           <div>
             <p class="eyebrow">Per Traveler</p>
@@ -2046,7 +2127,7 @@ body > footer {
         </div>
       </section>
 
-      <section class="panel notices" id="notices">
+      <section class="panel notices page-section" id="notices" data-page="notices" hidden>
         <header class="section-head reveal">
           <div>
             <p class="eyebrow">Before Departure</p>
@@ -3360,6 +3441,68 @@ window.TRIP_CONTENT = {
     document.getElementById(id).textContent = value;
   }
 
+  function setupSectionPaging() {
+    var pager = document.getElementById("section-pager");
+    var tabs = Array.prototype.slice.call(document.querySelectorAll(".page-tab"));
+    var sections = Array.prototype.slice.call(document.querySelectorAll(".page-section"));
+    var topLinks = Array.prototype.slice.call(document.querySelectorAll('.nav a[href^="#"]'));
+    if (!pager || !tabs.length || !sections.length) return;
+
+    var pageNames = sections.reduce(function (names, section) {
+      var name = section.dataset.page;
+      if (name && names.indexOf(name) === -1) names.push(name);
+      return names;
+    }, []);
+
+    function normalizePage(page) {
+      return pageNames.indexOf(page) === -1 ? "schedule" : page;
+    }
+
+    function setPage(page, options) {
+      var activePage = normalizePage(page);
+      sections.forEach(function (section) {
+        section.hidden = section.dataset.page !== activePage;
+      });
+      tabs.forEach(function (tab) {
+        var active = tab.dataset.page === activePage;
+        tab.classList.toggle("active", active);
+        tab.setAttribute("aria-selected", String(active));
+      });
+      topLinks.forEach(function (link) {
+        link.classList.toggle("active", link.getAttribute("href") === "#" + activePage);
+      });
+      if (options && options.updateHash && window.history && window.history.replaceState) {
+        window.history.replaceState(null, "", "#" + activePage);
+      }
+      if (options && options.scroll) {
+        window.requestAnimationFrame(function () {
+          pager.scrollIntoView({ block: "start", behavior: "smooth" });
+        });
+      }
+    }
+
+    pager.addEventListener("click", function (event) {
+      var tab = event.target.closest(".page-tab");
+      if (!tab) return;
+      setPage(tab.dataset.page, { updateHash: true, scroll: true });
+    });
+
+    topLinks.forEach(function (link) {
+      var target = link.getAttribute("href").slice(1);
+      if (pageNames.indexOf(target) === -1) return;
+      link.addEventListener("click", function (event) {
+        event.preventDefault();
+        setPage(target, { updateHash: true, scroll: true });
+      });
+    });
+
+    window.addEventListener("hashchange", function () {
+      setPage(window.location.hash.replace("#", ""), { scroll: false });
+    });
+
+    setPage(window.location.hash.replace("#", ""), { scroll: false });
+  }
+
   function renderSummary() {
     var finance = data.finance;
     var paidPercent = percentage(finance.paid, finance.total);
@@ -3638,6 +3781,7 @@ window.TRIP_CONTENT = {
   renderEpisodes();
   renderFinance();
   renderNotices();
+  setupSectionPaging();
   activateReveal();
 }());
 
