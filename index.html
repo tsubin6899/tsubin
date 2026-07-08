@@ -1455,8 +1455,351 @@ h1 {
   color: var(--ink);
 }
 
+#spot-reader {
+  background:
+    linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(248, 243, 234, 0.94)),
+    var(--paper);
+}
+
+#spot-reader .reading-head {
+  border-bottom: 1px solid rgba(41, 71, 82, 0.16);
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+}
+
+#spot-reader .markdown {
+  display: grid;
+  gap: 14px;
+  max-width: 920px;
+}
+
+#spot-reader .markdown > p {
+  margin: 0;
+  color: #314854;
+  font-size: 0.92rem;
+  line-height: 1.92;
+}
+
+#spot-reader .markdown hr {
+  width: 100%;
+  height: 1px;
+  margin: 14px 0 4px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, rgba(41, 71, 82, 0.22), transparent);
+}
+
+#spot-reader .markdown h3,
+#spot-reader .markdown h4,
+#spot-reader .markdown h5 {
+  margin: 16px 0 2px;
+  color: #213f4c;
+  font-family: var(--title);
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.attraction-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+}
+
+.attraction-legend span,
+.attraction-legend b {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.attraction-legend b,
+.attraction-important,
+#spot-reader .markdown .attraction-important strong {
+  color: #c32924;
+}
+
+.legend-history {
+  color: #246f86;
+}
+
+.legend-highlights {
+  color: #a85c18;
+}
+
+.legend-guide {
+  color: #8b4779;
+}
+
+.attraction-block {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(41, 71, 82, 0.14);
+  border-left-width: 5px;
+  border-radius: 8px;
+  padding: 15px 16px 16px;
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: 0 14px 36px rgba(45, 56, 62, 0.06);
+}
+
+.attraction-block p {
+  margin: 0;
+  color: #304753;
+  font-size: 0.92rem;
+  line-height: 1.92;
+}
+
+.attraction-label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.attraction-history {
+  border-left-color: #246f86;
+  background: linear-gradient(90deg, rgba(36, 111, 134, 0.12), rgba(255, 255, 255, 0.74));
+}
+
+.attraction-history .attraction-label,
+.attraction-history strong {
+  color: #246f86;
+}
+
+.attraction-highlights {
+  border-left-color: #a85c18;
+  background: linear-gradient(90deg, rgba(168, 92, 24, 0.13), rgba(255, 255, 255, 0.74));
+}
+
+.attraction-highlights .attraction-label,
+.attraction-highlights strong {
+  color: #a85c18;
+}
+
+.attraction-guide {
+  border-left-color: #8b4779;
+  background: linear-gradient(90deg, rgba(139, 71, 121, 0.13), rgba(255, 255, 255, 0.74));
+}
+
+.attraction-guide .attraction-label,
+.attraction-guide strong {
+  color: #8b4779;
+}
+
+.attraction-info {
+  border-left-color: #5f6f55;
+  background: linear-gradient(90deg, rgba(95, 111, 85, 0.11), rgba(255, 255, 255, 0.74));
+}
+
+.attraction-block h3,
+.attraction-block h4,
+.attraction-block h5,
+.attraction-section-heading,
+.attraction-info-heading {
+  margin: 6px 0 2px;
+  font-family: var(--title);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.attraction-history h3,
+.attraction-history h4,
+.attraction-history h5,
+.attraction-history .attraction-section-heading {
+  color: #246f86;
+}
+
+.attraction-highlights h3,
+.attraction-highlights h4,
+.attraction-highlights h5,
+.attraction-highlights .attraction-section-heading {
+  color: #a85c18;
+}
+
+.attraction-guide h3,
+.attraction-guide h4,
+.attraction-guide h5,
+.attraction-guide .attraction-section-heading {
+  color: #8b4779;
+}
+
+.attraction-info h3,
+.attraction-info h4,
+.attraction-info h5,
+.attraction-info .attraction-info-heading,
+.attraction-info .attraction-section-heading {
+  color: #5f6f55;
+}
+
+.attraction-info strong {
+  color: #5f6f55;
+}
+
 .script-reader .markdown {
   max-width: 920px;
+}
+
+.script-reader {
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(248, 243, 234, 0.94)),
+    var(--paper);
+}
+
+.script-reader .reading-head {
+  border-bottom: 1px solid rgba(41, 71, 82, 0.16);
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+}
+
+.script-reader .markdown {
+  display: grid;
+  gap: 14px;
+}
+
+.script-reader .markdown > p {
+  margin: 0;
+  color: #324955;
+  font-size: 0.92rem;
+  line-height: 1.9;
+}
+
+.script-reader .markdown hr {
+  width: 100%;
+  height: 1px;
+  margin: 14px 0 4px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, rgba(41, 71, 82, 0.22), transparent);
+}
+
+.script-heading,
+.script-reader .markdown h3,
+.script-reader .markdown h4,
+.script-reader .markdown h5 {
+  margin: 24px 0 3px;
+  color: #213f4c;
+  font-family: var(--title);
+  font-size: clamp(1.08rem, 2.2vw, 1.45rem);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.script-important-heading,
+.script-important,
+.script-reader .markdown .script-important strong {
+  color: #c32924;
+}
+
+.script-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+}
+
+.script-legend span,
+.script-legend b {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.script-legend b {
+  color: #c32924;
+}
+
+.legend-voice {
+  color: #1f5f95;
+}
+
+.legend-dialogue {
+  color: #24725f;
+}
+
+.legend-shot {
+  color: #a85c18;
+}
+
+.legend-post {
+  color: #7350a8;
+}
+
+.script-block {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(41, 71, 82, 0.14);
+  border-left-width: 5px;
+  border-radius: 8px;
+  padding: 14px 16px 15px;
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: 0 14px 36px rgba(45, 56, 62, 0.06);
+}
+
+.script-block p {
+  margin: 0;
+  color: #2f4653;
+  font-size: 0.92rem;
+  line-height: 1.9;
+}
+
+.script-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.script-voice {
+  border-left-color: #1f5f95;
+  background: linear-gradient(90deg, rgba(31, 95, 149, 0.12), rgba(255, 255, 255, 0.74));
+}
+
+.script-voice .script-label,
+.script-voice strong {
+  color: #1f5f95;
+}
+
+.script-dialogue {
+  border-left-color: #24725f;
+  background: linear-gradient(90deg, rgba(36, 114, 95, 0.12), rgba(255, 255, 255, 0.74));
+}
+
+.script-dialogue .script-label,
+.script-dialogue strong {
+  color: #24725f;
+}
+
+.script-shot {
+  border-left-color: #a85c18;
+  background: linear-gradient(90deg, rgba(168, 92, 24, 0.13), rgba(255, 255, 255, 0.74));
+}
+
+.script-shot .script-label,
+.script-shot strong {
+  color: #a85c18;
+}
+
+.script-post {
+  border-left-color: #7350a8;
+  background: linear-gradient(90deg, rgba(115, 80, 168, 0.13), rgba(255, 255, 255, 0.74));
+}
+
+.script-post .script-label,
+.script-post strong {
+  color: #7350a8;
 }
 
 .personal-layout {
@@ -1864,6 +2207,26 @@ body > footer {
 
   .article-reader {
     padding: 20px 15px;
+  }
+
+  .script-block {
+    padding: 13px 13px 14px;
+  }
+
+  .attraction-block {
+    padding: 13px 13px 14px;
+  }
+
+  .attraction-legend span,
+  .attraction-legend b {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .script-legend span,
+  .script-legend b {
+    flex: 1 1 100%;
+    justify-content: center;
   }
 
   .episode-tabs,
@@ -3378,24 +3741,97 @@ window.TRIP_CONTENT = {
       .replace(/\*([^*]+)\*/g, "<em>$1</em>");
   }
 
-  function renderMarkdown(markdown) {
+  function scriptCue(trimmed) {
+    var cue = trimmed.replace(/\*\*/g, "").replace(/[：:｜|].*$/, "").trim();
+    if (/^(景點)?旁白/.test(cue)) return { type: "voice", label: "景點旁白（畫外音）" };
+    if (/^點綴台詞/.test(cue)) return { type: "dialogue", label: "點綴台詞（現場互動）" };
+    if (/^鏡頭/.test(cue)) return { type: "shot", label: "鏡頭建議" };
+    if (/^後製/.test(cue)) return { type: "post", label: "後製備註" };
+    return null;
+  }
+
+  function importantLine(trimmed) {
+    return /(重點|提示|注意|禁止|提前|建議|總計|必看|需提前|已訂票|Reference ID|門票|費用)/.test(trimmed);
+  }
+
+  function attractionCue(trimmed, currentType) {
+    var isHeadingLine = /^#{1,4}\s/.test(trimmed) || /^\*\*[^*]+\*\*$/.test(trimmed) || /^(?:[\u2600-\u27bf]|\ud83c[\udf00-\udfff]|\ud83d[\udc00-\udfff]|\ud83e[\udd00-\udfff]|\ufe0f|\s)*\*\*[^*]+\*\*$/.test(trimmed) || /^(?:[\u2600-\u27bf]|\ud83c[\udf00-\udfff]|\ud83d[\udc00-\udfff]|\ud83e[\udd00-\udfff]|\ufe0f|\s)+$/.test(trimmed.replace(/\*\*/g, "").trim());
+    if (!isHeadingLine) return null;
+    var cue = trimmed.replace(/^#{1,4}\s*/, "").replace(/\*\*/g, "").trim();
+    if (cue.indexOf("\u6b77\u53f2\u8108\u7d61") !== -1) {
+      return { type: "history", label: "\u6b77\u53f2\u8108\u7d61" };
+    }
+    if (cue.indexOf("\u5c0e\u89bd\u54e1\u7684\u73fe\u5834\u63d0\u793a") !== -1) {
+      return { type: "guide", label: "\u5c0e\u89bd\u54e1\u7684\u73fe\u5834\u63d0\u793a" };
+    }
+    if (/(\u53c3\u89c0\u91cd\u9ede|\u5fc5\u770b\u91cd\u9ede|\u91cd\u9ede\u8207\u9ad4\u9a57|\u770b\u9ede|\u91cd\u9ede\s*\d+)/.test(cue)) {
+      return { type: "highlights", label: "" };
+    }
+    if (currentType === "highlights") return null;
+    if (/(\u5be6\u7528|\u5165\u5834|\u8cc7\u8a0a|\u63d0\u9192|\u6ce8\u610f|\u4ea4\u901a|\u6700\u4f73|\u62cd\u651d|\u651d\u5f71|\u6642\u6bb5|\u52d5\u7dda|\u642d\u914d|\u6bd4\u8f03|\u89e3\u6790|\u610f\u7fa9|\u96fb\u5f71|\u5149\u7dda|\u8272\u5f69|\u5730\u8cea|\u8106\u5f31|\u9ad4\u9a57|\u7e3d\u89bd|\u5ef6\u4f38|\u8def\u7dda|\u9580\u7968|\u65fa\u5b63)/.test(cue)) {
+      return { type: "info", label: "" };
+    }
+    if (currentType === "history" && (/^(?:[\u2600-\u27bf]|\ud83c[\udf00-\udfff]|\ud83d[\udc00-\udfff]|\ud83e[\udd00-\udfff]|\ufe0f|\s)+$/.test(cue) || /^#\s*(?:[\u2600-\u27bf]|\ud83c[\udf00-\udfff]|\ud83d[\udc00-\udfff]|\ud83e[\udd00-\udfff])/.test(trimmed))) {
+      return { type: "highlights", label: "" };
+    }
+    return null;
+  }
+
+  function attractionImportantLine(trimmed) {
+    return /(\u91cd\u9ede|\u63d0\u793a|\u6ce8\u610f|\u5efa\u8b70|\u5fc5\u770b|\u9580\u7968|\u8cbb\u7528|\u958b\u653e|\u6700\u4f73|\u651d\u5f71|\u5f37\u70c8|\u63d0\u524d|\u7981\u6b62|\u9700\u906e\u84cb|\u5b98\u7db2|\u9810\u8cfc|\u9810\u8a02)/.test(trimmed);
+  }
+
+  function renderMarkdown(markdown, options) {
+    options = options || {};
     var lines = markdown.replace(/\r/g, "").split("\n");
     var html = [];
     var paragraph = [];
     var quote = [];
+    var openScriptBlock = false;
+    var openAttractionBlock = false;
+    var attractionType = "";
 
     if (/^#\s/.test(lines[0] || "")) lines.shift();
     while (lines.length && (!lines[0].trim() || /^(日期|狀態):/.test(lines[0].trim()))) lines.shift();
 
+    function closeScriptBlock() {
+      if (openScriptBlock) {
+        html.push("</div>");
+        openScriptBlock = false;
+      }
+    }
+
+    function closeAttractionBlock() {
+      if (openAttractionBlock) {
+        html.push("</section>");
+        openAttractionBlock = false;
+        attractionType = "";
+      }
+    }
+
     function flushParagraph() {
       if (paragraph.length) {
-        html.push("<p>" + inlineMarkdown(paragraph.join("\n")).replace(/\n/g, "<br>") + "</p>");
+        var raw = paragraph.join("\n");
+        var className = "";
+        if (options.script && importantLine(raw)) className = ' class="script-important"';
+        if (options.attraction && attractionImportantLine(raw)) className = ' class="attraction-important"';
+        if (options.attraction && !openAttractionBlock) {
+          html.push('<section class="attraction-block attraction-info">');
+          openAttractionBlock = true;
+          attractionType = "info";
+        }
+        html.push("<p" + className + ">" + inlineMarkdown(raw).replace(/\n/g, "<br>") + "</p>");
         paragraph = [];
       }
     }
 
     function flushQuote() {
       if (quote.length) {
+        if (options.attraction && !openAttractionBlock) {
+          html.push('<section class="attraction-block attraction-info">');
+          openAttractionBlock = true;
+          attractionType = "info";
+        }
         html.push("<blockquote>" + inlineMarkdown(quote.join(" ")) + "</blockquote>");
         quote = [];
       }
@@ -3409,9 +3845,54 @@ window.TRIP_CONTENT = {
         flushQuote();
         return;
       }
+      var attraction = options.attraction ? attractionCue(trimmed, attractionType) : null;
+      if (attraction) {
+        flushParagraph();
+        flushQuote();
+        closeScriptBlock();
+        if (openAttractionBlock && attractionType === attraction.type) {
+          var sameTypeHeading = trimmed.replace(/^#{1,4}\s+/, "").replace(/\*\*/g, "");
+          if (sameTypeHeading && sameTypeHeading !== attraction.label) {
+            html.push('<h4 class="attraction-section-heading">' + inlineMarkdown(sameTypeHeading) + "</h4>");
+          }
+          return;
+        }
+        if (attraction.type === "info" && openAttractionBlock && attractionType === "info") {
+          var infoHeading = trimmed.replace(/^#{1,4}\s+/, "").replace(/\*\*/g, "");
+          if (infoHeading) html.push('<h4 class="attraction-info-heading">' + inlineMarkdown(infoHeading) + "</h4>");
+          return;
+        }
+        closeAttractionBlock();
+        html.push('<section class="attraction-block attraction-' + attraction.type + '">');
+        if (attraction.label) html.push('<div class="attraction-label">' + attraction.label + "</div>");
+        if (attraction.type === "info") {
+          var firstInfoHeading = trimmed.replace(/^#{1,4}\s+/, "").replace(/\*\*/g, "");
+          if (firstInfoHeading) html.push('<h4 class="attraction-info-heading">' + inlineMarkdown(firstInfoHeading) + "</h4>");
+        }
+        openAttractionBlock = true;
+        attractionType = attraction.type;
+        return;
+      }
+      var cue = options.script ? scriptCue(trimmed) : null;
+      if (cue) {
+        flushParagraph();
+        flushQuote();
+        closeScriptBlock();
+        closeAttractionBlock();
+        html.push('<div class="script-block script-' + cue.type + '"><div class="script-label">' + cue.label + "</div>");
+        openScriptBlock = true;
+        return;
+      }
+      if (options.script && openScriptBlock && /^\*\*.+?\*\*/.test(trimmed) && !/^\*\*[^*]+\*\*[「（(]/.test(trimmed)) {
+        flushParagraph();
+        flushQuote();
+        closeScriptBlock();
+      }
       if (/^---+$/.test(trimmed)) {
         flushParagraph();
         flushQuote();
+        closeScriptBlock();
+        closeAttractionBlock();
         html.push("<hr>");
         return;
       }
@@ -3423,20 +3904,39 @@ window.TRIP_CONTENT = {
       flushQuote();
       if (/^#{1,4}\s/.test(trimmed)) {
         flushParagraph();
+        closeScriptBlock();
+        if (options.attraction && !openAttractionBlock) {
+          html.push('<section class="attraction-block attraction-info">');
+          openAttractionBlock = true;
+          attractionType = "info";
+        }
         var level = Math.min(trimmed.match(/^#+/)[0].length + 2, 5);
         html.push("<h" + level + ">" + inlineMarkdown(trimmed.replace(/^#{1,4}\s+/, "")) + "</h" + level + ">");
         return;
       }
       if (/^[-*]\s/.test(trimmed)) {
         flushParagraph();
+        if (options.attraction && !openAttractionBlock) {
+          html.push('<section class="attraction-block attraction-info">');
+          openAttractionBlock = true;
+          attractionType = "info";
+        }
         html.push("<p class=\"bullet\">" + inlineMarkdown(trimmed.replace(/^[-*]\s+/, "")) + "</p>");
+        return;
+      }
+      if (options.script && /^\*\*.+\*\*/.test(trimmed) && !openScriptBlock) {
+        flushParagraph();
+        var headingClass = importantLine(trimmed) ? ' class="script-heading script-important-heading"' : ' class="script-heading"';
+        html.push("<h4" + headingClass + ">" + inlineMarkdown(trimmed.replace(/^\*\*|\*\*$/g, "")) + "</h4>");
         return;
       }
       paragraph.push(trimmed);
     });
     flushParagraph();
     flushQuote();
-    return html.join("");
+    closeScriptBlock();
+    closeAttractionBlock();
+    return html.join("").replace(/<div class="script-block script-[^"]+"><div class="script-label">[^<]+<\/div><\/div>/g, "");
   }
 
   function setText(id, value) {
@@ -3651,7 +4151,10 @@ window.TRIP_CONTENT = {
       reader.innerHTML = '<figure class="spot-photo"><img loading="lazy" src="' + image +
         '" alt="' + escapeHtml(article.title) + '景點照片"></figure><header class="reading-head"><p class="eyebrow">' + article.region +
         '</p><h3>' + escapeHtml(article.title) + '</h3><span>' + article.date + " · " +
-        article.status + '</span></header><div class="markdown">' + renderMarkdown(article.markdown) + "</div>";
+        article.status + '</span></header><div class="attraction-legend" aria-label="景點介紹標示說明">' +
+        '<span class="legend-history">歷史脈絡</span>' +
+        '<span class="legend-guide">導覽員的現場提示</span>' +
+        '<b>紅字為重點</b></div><div class="markdown">' + renderMarkdown(article.markdown, { attraction: true }) + "</div>";
       grid.querySelectorAll(".spot-card").forEach(function (card, index) {
         card.classList.toggle("active", index === activeIndex);
       });
@@ -3735,7 +4238,12 @@ window.TRIP_CONTENT = {
       var episode = content.episodes[index];
       reader.innerHTML = '<header class="reading-head"><p class="eyebrow">' + episode.number +
         '</p><h3>' + escapeHtml(episode.title) + '</h3><span>' + episode.date + " · " +
-        episode.status + '</span></header><div class="markdown">' + renderMarkdown(episode.markdown) + "</div>";
+        episode.status + '</span></header><div class="script-legend" aria-label="腳本標示說明">' +
+        '<span class="legend-voice">景點旁白（畫外音）</span>' +
+        '<span class="legend-dialogue">點綴台詞（現場互動）</span>' +
+        '<span class="legend-shot">鏡頭建議</span>' +
+        '<span class="legend-post">後製備註</span>' +
+        '<b>紅字為重點</b></div><div class="markdown">' + renderMarkdown(episode.markdown, { script: true }) + "</div>";
       tabs.querySelectorAll(".episode-tab").forEach(function (tab, tabIndex) {
         tab.classList.toggle("active", tabIndex === index);
       });
