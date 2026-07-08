@@ -6,12 +6,12 @@
     <meta name="theme-color" content="#16736a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="南義大利之旅">
+    <meta name="apple-mobile-web-app-title" content="義大利之旅">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="manifest" href="../manifest.webmanifest">
     <link rel="icon" href="../icons/italy-flag.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="../icons/italy-flag-192.png">
-    <title>南義大利之旅</title>
+    <title>義大利之旅</title>
     <meta name="description" content="2026 南義大利旅行即時記帳、多人分帳與分期結帳工具">
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -208,6 +208,28 @@
           </select>
         </header>
         <div class="ledger-list" id="ledger"></div>
+      </section>
+
+      <section class="panel trip-total-panel">
+        <header class="panel-header">
+          <div>
+            <p>Trip Total</p>
+            <h2>本次旅行總統計</h2>
+          </div>
+        </header>
+        <div class="trip-total-grid">
+          <article class="trip-total-feature">
+            <span>本次旅行總支出</span>
+            <strong id="tripGrandTotal">NT$ 0</strong>
+            <small id="tripGrandCount">0 筆支出</small>
+          </article>
+          <article class="trip-total-feature">
+            <span>平均一人支出</span>
+            <strong id="tripPerPerson">NT$ 0</strong>
+            <small id="tripPeopleCount">0 位旅伴</small>
+          </article>
+          <div class="trip-category-chart" id="tripCategoryChart"></div>
+        </div>
       </section>
     </main>
 

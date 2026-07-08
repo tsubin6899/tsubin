@@ -1,7 +1,7 @@
 {
-  "name": "南義大利之旅",
-  "short_name": "南義大利",
-  "description": "南義大利旅行行程、經費與分帳工具",
+  "name": "義大利之旅",
+  "short_name": "義大利之旅",
+  "description": "義大利旅行行程、經費與分帳工具",
   "lang": "zh-Hant",
   "start_url": "/",
   "scope": "/",
