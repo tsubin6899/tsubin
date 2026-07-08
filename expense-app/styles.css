@@ -111,6 +111,45 @@ button {
   padding: clamp(24px, 4vw, 48px) 0 64px;
 }
 
+.sync-panel {
+  min-height: 112px;
+  margin-bottom: 18px;
+  padding: clamp(18px, 2.5vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+  gap: 18px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow);
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--rose);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.sync-panel h1 {
+  margin-bottom: 6px;
+}
+
+.sync-panel span {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.trip-code-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
 .summary-grid,
 .analysis-grid {
   display: grid;
@@ -426,8 +465,13 @@ button:focus-visible {
 @media (max-width: 980px) {
   .summary-grid,
   .analysis-grid,
-  .workspace {
+  .workspace,
+  .sync-panel {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .sync-panel {
+    align-items: stretch;
   }
 
   .entry-panel {
@@ -456,7 +500,9 @@ button:focus-visible {
   .summary-grid,
   .analysis-grid,
   .workspace,
-  .form-grid {
+  .form-grid,
+  .sync-panel,
+  .trip-code-form {
     grid-template-columns: 1fr;
   }
 

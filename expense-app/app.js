@@ -1,7 +1,16 @@
 (function () {
   "use strict";
 
-  var storageKey = "sud-italia-expense-app-v1";
+  var storageKey = "sud-italia-expense-app-v2";
+  var legacyStorageKey = "sud-italia-expense-app-v1";
+  var codeKey = "sud-italia-expense-trip-code";
+  var firebaseSettings = window.TRIP_EXPENSE_FIREBASE || {};
+  var db = null;
+  var unsubscribeExpenses = null;
+  var unsubscribeSettings = null;
+  var syncMode = "local";
+  var isRemoteUpdate = false;
+
   var money = new Intl.NumberFormat("zh-TW", {
     style: "currency",
     currency: "TWD",
@@ -10,6 +19,7 @@
 
   var defaults = {
     eurRate: 35.2,
+    tripCode: firebaseSettings.tripCode || "SOUTH-ITALY-2026",
     people: ["祖斌", "旅伴 2", "旅伴 3", "旅伴 4"],
     expenses: []
   };
@@ -24,10 +34,14 @@
     setDefaultDate();
     bindEvents();
     render();
+    startSync();
   }
 
   function bindElements() {
     [
+      "syncStatus",
+      "tripCodeForm",
+      "tripCode",
       "totalSpent",
       "expenseCount",
       "averageShare",
@@ -62,6 +76,7 @@
   function bindEvents() {
     elements.expenseForm.addEventListener("submit", addExpense);
     elements.personForm.addEventListener("submit", addPerson);
+    elements.tripCodeForm.addEventListener("submit", changeTripCode);
     elements.eurRate.addEventListener("change", updateRate);
     elements.filterCategory.addEventListener("change", renderLedger);
     elements.selectAll.addEventListener("click", function () {
@@ -77,12 +92,19 @@
   function loadState() {
     try {
       var raw = localStorage.getItem(storageKey);
-      if (!raw) return clone(defaults);
+      if (!raw) raw = localStorage.getItem(legacyStorageKey);
+      var savedCode = localStorage.getItem(codeKey);
+      if (!raw) {
+        var initial = clone(defaults);
+        if (savedCode) initial.tripCode = savedCode;
+        return initial;
+      }
       var parsed = JSON.parse(raw);
       return {
         eurRate: Number(parsed.eurRate) || defaults.eurRate,
+        tripCode: savedCode || parsed.tripCode || defaults.tripCode,
         people: Array.isArray(parsed.people) && parsed.people.length ? parsed.people : clone(defaults.people),
-        expenses: Array.isArray(parsed.expenses) ? parsed.expenses : []
+        expenses: Array.isArray(parsed.expenses) ? parsed.expenses.map(normalizeExpense) : []
       };
     } catch (error) {
       return clone(defaults);
@@ -91,6 +113,95 @@
 
   function saveState() {
     localStorage.setItem(storageKey, JSON.stringify(state));
+    localStorage.setItem(codeKey, state.tripCode);
+  }
+
+  function startSync() {
+    elements.tripCode.value = state.tripCode;
+    if (!firebaseSettings.enabled) {
+      setSyncStatus("本機模式：請先在 firebase-config.js 啟用 Firebase。");
+      return;
+    }
+    if (!firebaseSettings.config || !firebaseSettings.config.apiKey || !window.firebase) {
+      setSyncStatus("本機模式：Firebase 設定尚未完成，或目前無法載入 Firebase。");
+      return;
+    }
+    try {
+      if (!window.firebase.apps.length) window.firebase.initializeApp(firebaseSettings.config);
+      db = window.firebase.firestore();
+      syncMode = "firebase";
+      subscribeTrip();
+    } catch (error) {
+      syncMode = "local";
+      setSyncStatus("本機模式：Firebase 初始化失敗。");
+    }
+  }
+
+  function subscribeTrip() {
+    stopSubscriptions();
+    setSyncStatus("同步中：" + state.tripCode);
+    var root = tripRef();
+
+    unsubscribeSettings = root.collection("settings").doc("main").onSnapshot(function (doc) {
+      isRemoteUpdate = true;
+      if (doc.exists) {
+        var data = doc.data() || {};
+        state.people = Array.isArray(data.people) && data.people.length ? data.people : state.people;
+        state.eurRate = Number(data.eurRate) || state.eurRate;
+      } else {
+        root.collection("settings").doc("main").set({
+          people: state.people,
+          eurRate: Number(state.eurRate) || defaults.eurRate,
+          updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      }
+      saveState();
+      render();
+      isRemoteUpdate = false;
+    }, function () {
+      setSyncStatus("同步失敗：請檢查 Firebase 權限設定。");
+    });
+
+    unsubscribeExpenses = root.collection("expenses").orderBy("createdAt", "desc").onSnapshot(function (snapshot) {
+      isRemoteUpdate = true;
+      state.expenses = snapshot.docs.map(function (doc) {
+        return normalizeExpense(Object.assign({ id: doc.id }, doc.data()));
+      });
+      saveState();
+      render();
+      setSyncStatus("已同步：" + state.tripCode + "，共 " + state.expenses.length + " 筆支出。");
+      isRemoteUpdate = false;
+    }, function () {
+      setSyncStatus("同步失敗：請檢查 Firebase 權限設定。");
+    });
+  }
+
+  function stopSubscriptions() {
+    if (unsubscribeExpenses) unsubscribeExpenses();
+    if (unsubscribeSettings) unsubscribeSettings();
+    unsubscribeExpenses = null;
+    unsubscribeSettings = null;
+  }
+
+  function tripRef() {
+    return db.collection("tripExpenseBooks").doc(safeTripCode(state.tripCode));
+  }
+
+  function safeTripCode(code) {
+    return String(code || defaults.tripCode).trim().replace(/[\/#?[\]]/g, "-").slice(0, 40) || defaults.tripCode;
+  }
+
+  function writeSettings() {
+    if (syncMode !== "firebase" || isRemoteUpdate) return Promise.resolve();
+    return tripRef().collection("settings").doc("main").set({
+      people: state.people,
+      eurRate: Number(state.eurRate) || defaults.eurRate,
+      updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  }
+
+  function setSyncStatus(text) {
+    elements.syncStatus.textContent = text;
   }
 
   function clone(value) {
@@ -109,6 +220,23 @@
     return currencyCode === "EUR" ? Number(amount) * state.eurRate : Number(amount);
   }
 
+  function normalizeExpense(expense) {
+    var amount = Number(expense.amount || 0);
+    var currencyCode = expense.currency || "TWD";
+    return {
+      id: expense.id || "expense-" + Date.now(),
+      date: expense.date || "",
+      title: expense.title || "",
+      category: expense.category || "其他",
+      amount: amount,
+      currency: currencyCode,
+      paidBy: expense.paidBy || "",
+      splitWith: Array.isArray(expense.splitWith) ? expense.splitWith : [],
+      createdAt: expense.createdAt || null,
+      twd: toTwd(amount, currencyCode)
+    };
+  }
+
   function addExpense(event) {
     event.preventDefault();
     var splitWith = Array.from(elements.splitWith.querySelectorAll("input:checked")).map(function (input) {
@@ -118,24 +246,40 @@
       alert("請至少選一位分攤對象。");
       return;
     }
-    var amount = Number(elements.amount.value);
-    var currencyCode = elements.currency.value;
-    var expense = {
+    var expense = normalizeExpense({
       id: "expense-" + Date.now(),
       date: elements.date.value,
       title: elements.title.value.trim(),
       category: elements.category.value,
-      amount: amount,
-      currency: currencyCode,
+      amount: Number(elements.amount.value),
+      currency: elements.currency.value,
       paidBy: elements.paidBy.value,
-      splitWith: splitWith,
-      twd: toTwd(amount, currencyCode)
-    };
-    state.expenses.unshift(expense);
-    saveState();
+      splitWith: splitWith
+    });
+    if (syncMode === "firebase") {
+      tripRef().collection("expenses").add({
+        date: expense.date,
+        title: expense.title,
+        category: expense.category,
+        amount: expense.amount,
+        currency: expense.currency,
+        paidBy: expense.paidBy,
+        splitWith: expense.splitWith,
+        createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
+      }).then(afterExpenseSaved).catch(function () {
+        setSyncStatus("新增失敗：請檢查 Firebase 權限或網路。");
+      });
+    } else {
+      state.expenses.unshift(expense);
+      saveState();
+      afterExpenseSaved();
+      render();
+    }
+  }
+
+  function afterExpenseSaved() {
     elements.expenseForm.reset();
     setDefaultDate();
-    render();
   }
 
   function addPerson(event) {
@@ -145,6 +289,7 @@
     state.people.push(name);
     elements.personName.value = "";
     saveState();
+    writeSettings();
     render();
   }
 
@@ -160,10 +305,17 @@
       return person !== name;
     });
     saveState();
+    writeSettings();
     render();
   }
 
   function deleteExpense(id) {
+    if (syncMode === "firebase") {
+      tripRef().collection("expenses").doc(id).delete().catch(function () {
+        setSyncStatus("刪除失敗：請檢查 Firebase 權限或網路。");
+      });
+      return;
+    }
     state.expenses = state.expenses.filter(function (expense) {
       return expense.id !== id;
     });
@@ -173,11 +325,18 @@
 
   function updateRate() {
     state.eurRate = Number(elements.eurRate.value) || defaults.eurRate;
-    state.expenses = state.expenses.map(function (expense) {
-      expense.twd = toTwd(expense.amount, expense.currency);
-      return expense;
-    });
+    state.expenses = state.expenses.map(normalizeExpense);
     saveState();
+    writeSettings();
+    render();
+  }
+
+  function changeTripCode(event) {
+    event.preventDefault();
+    state.tripCode = safeTripCode(elements.tripCode.value);
+    elements.tripCode.value = state.tripCode;
+    saveState();
+    if (syncMode === "firebase") subscribeTrip();
     render();
   }
 
@@ -188,13 +347,30 @@
   }
 
   function resetData() {
-    if (!confirm("確定要清空目前的記帳資料？")) return;
-    state = clone(defaults);
+    if (!confirm("確定要清空目前帳本？Firebase 模式會清空這個旅行代碼底下的雲端支出。")) return;
+    if (syncMode === "firebase") {
+      tripRef().collection("expenses").get().then(function (snapshot) {
+        var batch = db.batch();
+        snapshot.docs.forEach(function (doc) {
+          batch.delete(doc.ref);
+        });
+        return batch.commit();
+      }).then(function () {
+        state.expenses = [];
+        saveState();
+        render();
+      }).catch(function () {
+        setSyncStatus("清空失敗：請檢查 Firebase 權限或網路。");
+      });
+      return;
+    }
+    state.expenses = [];
     saveState();
     render();
   }
 
   function render() {
+    elements.tripCode.value = state.tripCode;
     elements.eurRate.value = state.eurRate;
     renderPeopleControls();
     renderSummary();
@@ -243,7 +419,7 @@
     state.expenses.forEach(function (expense) {
       if (!balances[expense.paidBy]) balances[expense.paidBy] = { paid: 0, share: 0, net: 0 };
       balances[expense.paidBy].paid += expense.twd;
-      var share = expense.twd / expense.splitWith.length;
+      var share = expense.splitWith.length ? expense.twd / expense.splitWith.length : 0;
       expense.splitWith.forEach(function (person) {
         if (!balances[person]) balances[person] = { paid: 0, share: 0, net: 0 };
         balances[person].share += share;
@@ -271,9 +447,7 @@
     var j = 0;
     while (i < debtors.length && j < creditors.length) {
       var amount = Math.min(debtors[i].amount, creditors[j].amount);
-      if (amount > 0) {
-        settlements.push({ from: debtors[i].person, to: creditors[j].person, amount: amount });
-      }
+      if (amount > 0) settlements.push({ from: debtors[i].person, to: creditors[j].person, amount: amount });
       debtors[i].amount -= amount;
       creditors[j].amount -= amount;
       if (debtors[i].amount <= 0) i += 1;
