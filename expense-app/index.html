@@ -123,11 +123,22 @@
                 <button type="button" id="selectNone">清除</button>
               </div>
             </div>
+            <div class="split-mode" role="radiogroup" aria-label="分攤方式">
+              <label>
+                <input id="splitModeEqual" type="radio" name="splitMode" value="equal" checked>
+                <span>平均分攤</span>
+              </label>
+              <label>
+                <input id="splitModeCustom" type="radio" name="splitMode" value="custom">
+                <span>指定金額</span>
+              </label>
+            </div>
             <div class="traveler-checks" id="splitWith"></div>
+            <div class="split-remainder" id="splitRemainder" aria-live="polite"></div>
           </div>
         </form>
 
-        <aside class="people-panel">
+        <aside class="people-panel" id="peoplePanel">
           <header class="panel-header compact">
             <div>
               <p>People</p>

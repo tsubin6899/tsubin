@@ -39,6 +39,7 @@
 
   var state = loadState();
   var elements = {};
+  var mobilePeopleQuery = window.matchMedia("(max-width: 680px)");
 
   document.addEventListener("DOMContentLoaded", init);
 
@@ -46,6 +47,7 @@
     bindElements();
     setDefaultDate();
     bindEvents();
+    placePeoplePanel();
     render();
     startSync();
   }
@@ -54,10 +56,12 @@
     [
       "syncStatus", "tripCodeForm", "tripCode", "totalSpent", "expenseCount", "averageShare",
       "travelerCount", "settleCount", "eurRate", "expenseForm", "date", "title", "category",
-      "amount", "currency", "paidBy", "splitWith", "selectAll", "selectNone", "personForm",
+      "amount", "currency", "paidBy", "splitWith", "splitModeEqual", "splitModeCustom",
+      "splitRemainder", "selectAll", "selectNone", "personForm",
       "personName", "personList", "settlements", "balances", "categories", "ledger",
       "filterCategory", "exportCsv", "resetData", "closePeriod", "periods",
-      "tripGrandTotal", "tripGrandCount", "tripPerPerson", "tripPeopleCount", "tripCategoryChart"
+      "tripGrandTotal", "tripGrandCount", "tripPerPerson", "tripPeopleCount", "tripCategoryChart",
+      "peoplePanel"
     ].forEach(function (id) {
       elements[id] = document.getElementById(id);
     });
@@ -69,11 +73,35 @@
     elements.tripCodeForm.addEventListener("submit", changeTripCode);
     elements.eurRate.addEventListener("change", updateRate);
     elements.filterCategory.addEventListener("change", renderLedger);
+    elements.amount.addEventListener("input", updateSplitModeUi);
+    elements.currency.addEventListener("change", updateSplitModeUi);
+    elements.splitModeEqual.addEventListener("change", updateSplitModeUi);
+    elements.splitModeCustom.addEventListener("change", updateSplitModeUi);
     elements.selectAll.addEventListener("click", function () { setAllSplit(true); });
     elements.selectNone.addEventListener("click", function () { setAllSplit(false); });
     elements.exportCsv.addEventListener("click", exportCsv);
     elements.resetData.addEventListener("click", resetData);
     elements.closePeriod.addEventListener("click", closeCurrentPeriod);
+    if (mobilePeopleQuery.addEventListener) {
+      mobilePeopleQuery.addEventListener("change", placePeoplePanel);
+    } else if (mobilePeopleQuery.addListener) {
+      mobilePeopleQuery.addListener(placePeoplePanel);
+    }
+  }
+
+  function placePeoplePanel() {
+    if (!elements.peoplePanel || !elements.expenseForm) return;
+    var workspace = elements.expenseForm.parentElement;
+    var appShell = document.querySelector(".app-shell");
+    if (mobilePeopleQuery.matches) {
+      if (appShell && elements.peoplePanel.parentElement !== appShell) {
+        appShell.appendChild(elements.peoplePanel);
+      }
+      return;
+    }
+    if (workspace && elements.peoplePanel.parentElement !== workspace) {
+      workspace.appendChild(elements.peoplePanel);
+    }
   }
 
   function loadState() {
@@ -227,6 +255,119 @@
     });
   }
 
+  function normalizeSplitShares(shares, splitWith) {
+    var normalized = {};
+    if (!shares || typeof shares !== "object") return normalized;
+    splitWith.forEach(function (person) {
+      var value = Number(shares[person] || 0);
+      if (value > 0) normalized[person] = value;
+    });
+    return normalized;
+  }
+
+  function currentSplitMode() {
+    return elements.splitModeCustom && elements.splitModeCustom.checked ? "custom" : "equal";
+  }
+
+  function selectedSplitPeople() {
+    return Array.from(elements.splitWith.querySelectorAll("input[type='checkbox']:checked")).map(function (input) {
+      return input.value;
+    });
+  }
+
+  function shareInputFor(person) {
+    return Array.from(elements.splitWith.querySelectorAll(".split-share-input")).filter(function (input) {
+      return input.dataset.person === person;
+    })[0];
+  }
+
+  function readSplitDetails() {
+    var amount = Number(elements.amount.value || 0);
+    var splitMode = currentSplitMode();
+    var splitWith = selectedSplitPeople();
+    var splitShares = {};
+    if (splitMode === "equal") {
+      return { splitMode: splitMode, splitWith: splitWith, splitShares: splitShares };
+    }
+
+    var total = 0;
+    splitWith.forEach(function (person) {
+      var input = shareInputFor(person);
+      var value = input ? Number(input.value || 0) : 0;
+      splitShares[person] = value;
+      total += value;
+    });
+    if (splitWith.some(function (person) { return splitShares[person] <= 0; })) {
+      return { splitMode: splitMode, splitWith: splitWith, splitShares: splitShares, error: "指定金額時，每位分攤對象都要填入大於 0 的金額。" };
+    }
+    if (Math.abs(total - amount) > 0.01) {
+      return { splitMode: splitMode, splitWith: splitWith, splitShares: splitShares, error: "指定金額合計需等於本筆支出金額。" };
+    }
+    return { splitMode: splitMode, splitWith: splitWith, splitShares: splitShares };
+  }
+
+  function updateSplitModeUi() {
+    if (!elements.splitWith || !elements.splitRemainder) return;
+    var custom = currentSplitMode() === "custom";
+    var amount = Number(elements.amount.value || 0);
+    var selected = selectedSplitPeople();
+    elements.splitWith.closest(".split-box").classList.toggle("custom-split", custom);
+
+    Array.from(elements.splitWith.querySelectorAll(".check-card")).forEach(function (card) {
+      var checkbox = card.querySelector("input[type='checkbox']");
+      var input = card.querySelector(".split-share-input");
+      if (!input || !checkbox) return;
+      input.disabled = !custom || !checkbox.checked;
+      input.required = custom && checkbox.checked;
+      if (!checkbox.checked) input.value = "";
+    });
+
+    if (!custom) {
+      elements.splitRemainder.className = "split-remainder";
+      elements.splitRemainder.textContent = selected.length ? "目前會由 " + selected.length + " 位平均分攤。" : "";
+      return;
+    }
+
+    var total = selected.reduce(function (sum, person) {
+      var input = shareInputFor(person);
+      return sum + Number(input && input.value ? input.value : 0);
+    }, 0);
+    var remaining = amount - total;
+    var isBalanced = amount > 0 && Math.abs(remaining) <= 0.01;
+    elements.splitRemainder.className = "split-remainder " + (isBalanced ? "balanced" : "unbalanced");
+    elements.splitRemainder.textContent = isBalanced
+      ? "已指定 " + originalMoney(total, elements.currency.value) + "，合計已等於本筆支出。"
+      : "已指定 " + originalMoney(total, elements.currency.value) +
+        "，" + (remaining >= 0 ? "尚餘 " : "已超出 ") + originalMoney(Math.abs(remaining), elements.currency.value) + "。";
+  }
+
+  function hasValidCustomShares(expense) {
+    if (expense.splitMode !== "custom" || !expense.splitWith.length) return false;
+    var total = expense.splitWith.reduce(function (sum, person) {
+      return sum + Number((expense.splitShares || {})[person] || 0);
+    }, 0);
+    return total > 0 && Math.abs(total - expense.amount) <= 0.01;
+  }
+
+  function expenseShareTwd(expense, person) {
+    if (hasValidCustomShares(expense)) return toTwd((expense.splitShares || {})[person] || 0, expense.currency);
+    return expense.splitWith.length ? expense.twd / expense.splitWith.length : 0;
+  }
+
+  function originalMoney(value, currencyCode) {
+    if (currencyCode === "EUR") return "EUR " + Number(value || 0).toFixed(2);
+    return currency(value || 0);
+  }
+
+  function splitSummary(expense) {
+    if (hasValidCustomShares(expense)) {
+      return expense.splitWith.map(function (person) {
+        return escapeHtml(person) + " " + originalMoney((expense.splitShares || {})[person] || 0, expense.currency);
+      }).join("、");
+    }
+    return expense.splitWith.map(escapeHtml).join("、") + "（平均）";
+  }
+
   function syncPeopleFromExpenses() {
     var names = state.people.slice();
     state.expenses.forEach(function (expense) {
@@ -239,6 +380,9 @@
   function normalizeExpense(expense) {
     var amount = Number(expense.amount || 0);
     var currencyCode = expense.currency || "TWD";
+    var splitWith = Array.isArray(expense.splitWith) ? expense.splitWith : [];
+    var splitMode = expense.splitMode === "custom" ? "custom" : "equal";
+    var splitShares = normalizeSplitShares(expense.splitShares, splitWith);
     return {
       id: expense.id || "expense-" + Date.now(),
       date: expense.date || "",
@@ -247,7 +391,9 @@
       amount: amount,
       currency: currencyCode,
       paidBy: expense.paidBy || "",
-      splitWith: Array.isArray(expense.splitWith) ? expense.splitWith : [],
+      splitWith: splitWith,
+      splitMode: splitMode,
+      splitShares: splitShares,
       settlementId: expense.settlementId || null,
       createdAt: expense.createdAt || null,
       clientCreatedAt: Number(expense.clientCreatedAt || 0),
@@ -273,11 +419,13 @@
 
   function addExpense(event) {
     event.preventDefault();
-    var splitWith = Array.from(elements.splitWith.querySelectorAll("input:checked")).map(function (input) {
-      return input.value;
-    });
-    if (!splitWith.length) {
+    var splitDetails = readSplitDetails();
+    if (!splitDetails.splitWith.length) {
       alert("請至少選一位分攤對象。");
+      return;
+    }
+    if (splitDetails.error) {
+      alert(splitDetails.error);
       return;
     }
     var expense = normalizeExpense({
@@ -287,7 +435,9 @@
       amount: Number(elements.amount.value),
       currency: elements.currency.value,
       paidBy: elements.paidBy.value,
-      splitWith: splitWith,
+      splitWith: splitDetails.splitWith,
+      splitMode: splitDetails.splitMode,
+      splitShares: splitDetails.splitShares,
       clientCreatedAt: Date.now()
     });
     if (syncMode === "firebase") {
@@ -299,6 +449,8 @@
         currency: expense.currency,
         paidBy: expense.paidBy,
         splitWith: expense.splitWith,
+        splitMode: expense.splitMode,
+        splitShares: expense.splitShares,
         settlementId: null,
         clientCreatedAt: expense.clientCreatedAt,
         createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
@@ -316,6 +468,7 @@
 
   function afterExpenseSaved() {
     elements.expenseForm.reset();
+    elements.splitModeEqual.checked = true;
     setDefaultDate();
   }
 
@@ -356,6 +509,15 @@
   }
 
   function deleteExpense(id) {
+    var expense = state.expenses.filter(function (item) { return item.id === id; })[0];
+    if (!expense) return;
+    var title = expense.title || "未命名支出";
+    var message = "確定要刪除這筆支出嗎？\n\n" +
+      "項目：" + title + "\n" +
+      "日期：" + (expense.date || "未填日期") + "\n" +
+      "金額：" + currency(expense.twd) + "\n\n" +
+      "刪除後無法復原。";
+    if (!confirm(message)) return;
     if (syncMode === "firebase") {
       tripRef().collection("expenses").doc(id).delete().catch(function (error) {
         setSyncStatus("刪除失敗：" + readableError(error));
@@ -438,9 +600,10 @@
   }
 
   function setAllSplit(checked) {
-    Array.from(elements.splitWith.querySelectorAll("input")).forEach(function (input) {
+    Array.from(elements.splitWith.querySelectorAll("input[type='checkbox']")).forEach(function (input) {
       input.checked = checked;
     });
+    updateSplitModeUi();
   }
 
   function resetData() {
@@ -483,8 +646,13 @@
     elements.paidBy.innerHTML = state.people.map(optionHtml).join("");
     elements.splitWith.innerHTML = state.people.map(function (person) {
       return '<label class="check-card"><input type="checkbox" value="' + escapeHtml(person) + '" checked>' +
-        '<span>' + escapeHtml(person) + "</span></label>";
+        '<span>' + escapeHtml(person) + '</span><input class="split-share-input" type="number" min="0" step="0.01" ' +
+        'inputmode="decimal" placeholder="輸入金額" data-person="' + escapeHtml(person) + '" aria-label="' + escapeHtml(person) + ' 分攤金額"></label>';
     }).join("");
+    Array.from(elements.splitWith.querySelectorAll("input")).forEach(function (input) {
+      input.addEventListener("input", updateSplitModeUi);
+      input.addEventListener("change", updateSplitModeUi);
+    });
     elements.personList.innerHTML = state.people.map(function (person) {
       return '<div class="person-row"><strong>' + escapeHtml(person) + "</strong>" +
         '<button type="button" data-person="' + escapeHtml(person) + '">移除</button></div>';
@@ -492,6 +660,7 @@
     Array.from(elements.personList.querySelectorAll("button")).forEach(function (button) {
       button.addEventListener("click", function () { removePerson(button.dataset.person); });
     });
+    updateSplitModeUi();
   }
 
   function renderSummary() {
@@ -513,10 +682,9 @@
     (expenses || activeExpenses()).forEach(function (expense) {
       if (!balances[expense.paidBy]) balances[expense.paidBy] = { paid: 0, share: 0, net: 0 };
       balances[expense.paidBy].paid += expense.twd;
-      var share = expense.splitWith.length ? expense.twd / expense.splitWith.length : 0;
       expense.splitWith.forEach(function (person) {
         if (!balances[person]) balances[person] = { paid: 0, share: 0, net: 0 };
-        balances[person].share += share;
+        balances[person].share += expenseShareTwd(expense, person);
       });
     });
     Object.keys(balances).forEach(function (person) {
@@ -598,11 +766,12 @@
     elements.ledger.innerHTML = rows.map(function (expense) {
       var original = expense.currency === "EUR" ? "EUR " + Number(expense.amount).toFixed(2) : currency(expense.amount);
       var status = expense.settlementId ? "已結帳" : "未結";
+      var splitLabel = splitSummary(expense);
       return '<div class="ledger-row"><div class="ledger-main"><span class="ledger-title">' +
         escapeHtml(expense.title) + ' <small class="status-tag">' + status + '</small></span><span class="ledger-meta">' +
         escapeHtml(expense.date) + ' / <span class="category-inline">' + categoryIcon(expense.category) +
         '<span>' + escapeHtml(expense.category) + '</span></span> / ' + escapeHtml(expense.paidBy) +
-        " 先付 / 分攤 " + expense.splitWith.map(escapeHtml).join("、") +
+        " 先付 / 分攤 " + splitLabel +
         '</span></div><div class="ledger-amount">' + currency(expense.twd) +
         '<div class="ledger-meta">' + original + '</div></div><button type="button" data-id="' +
         escapeHtml(expense.id) + '">刪除</button></div>';
@@ -649,11 +818,14 @@
   }
 
   function exportCsv() {
-    var header = ["date", "title", "category", "amount", "currency", "twd", "paidBy", "splitWith", "status", "settlementId"];
+    var header = ["date", "title", "category", "amount", "currency", "twd", "paidBy", "splitMode", "splitWith", "splitShares", "status", "settlementId"];
     var rows = state.expenses.map(function (expense) {
       return [
         expense.date, expense.title, expense.category, expense.amount, expense.currency,
-        Math.round(expense.twd), expense.paidBy, expense.splitWith.join("|"),
+        Math.round(expense.twd), expense.paidBy, expense.splitMode, expense.splitWith.join("|"),
+        expense.splitWith.map(function (person) {
+          return person + ":" + Number((expense.splitShares || {})[person] || 0);
+        }).join("|"),
         expense.settlementId ? "settled" : "open", expense.settlementId || ""
       ].map(csvCell).join(",");
     });

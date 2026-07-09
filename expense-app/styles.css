@@ -321,19 +321,54 @@ button:focus-visible {
   background: rgba(255, 255, 255, 0.78);
 }
 
+.split-mode {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 14px;
+  padding: 4px;
+  border: 1px solid rgba(22, 115, 106, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.split-mode label {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  font-size: 0.86rem;
+}
+
+.split-mode input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+}
+
+.split-mode label:has(input:checked) {
+  background: var(--teal);
+  color: #fff;
+}
+
 .traveler-checks {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
   margin-top: 14px;
 }
 
 .check-card {
-  min-height: 42px;
-  padding: 8px 10px;
+  min-height: 72px;
+  padding: 12px;
   border: 1px solid rgba(22, 115, 106, 0.2);
   border-radius: 8px;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   background: #fff;
@@ -343,6 +378,52 @@ button:focus-visible {
 .check-card input {
   width: 18px;
   min-height: 18px;
+}
+
+.split-share-input {
+  display: none;
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 2px;
+  padding: 0 12px;
+  color: var(--ink);
+  font-size: 1.08rem;
+  font-weight: 900;
+  text-align: right;
+}
+
+.check-card .split-share-input {
+  width: 100%;
+  min-height: 48px;
+}
+
+.custom-split .check-card {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.custom-split .split-share-input {
+  display: block;
+}
+
+.split-share-input:disabled {
+  opacity: 0.44;
+}
+
+.split-remainder {
+  min-height: 24px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.split-remainder.balanced {
+  color: var(--teal);
+}
+
+.split-remainder.unbalanced {
+  color: var(--rose);
 }
 
 .person-add {
@@ -518,6 +599,10 @@ button:focus-visible {
 }
 
 .trip-total-panel {
+  margin-top: 18px;
+}
+
+.app-shell > .people-panel {
   margin-top: 18px;
 }
 

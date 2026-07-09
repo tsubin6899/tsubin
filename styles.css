@@ -2193,6 +2193,40 @@ body > footer {
     padding: 20px 15px;
   }
 
+  .script-reader {
+    display: block;
+    min-height: auto;
+    overflow: visible;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .script-reader.reveal {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .script-reader .reading-head,
+  .script-reader .script-legend,
+  .script-reader .markdown {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .script-reader .markdown {
+    max-width: none;
+    min-height: 1px;
+    overflow: visible;
+  }
+
+  .script-reader .markdown > * + * {
+    margin-top: 12px;
+  }
+
   .script-block {
     padding: 13px 13px 14px;
   }
