@@ -2174,6 +2174,96 @@ body > footer {
     align-items: start;
   }
 
+  .finance-summary .payment-block {
+    align-items: stretch;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+
+  .finance-summary .donut {
+    flex: none;
+    width: clamp(132px, 48vw, 168px);
+    height: clamp(132px, 48vw, 168px);
+    margin: 0 auto;
+  }
+
+  .finance-summary .donut::after {
+    inset: clamp(15px, 5.4vw, 20px);
+  }
+
+  .finance-summary .donut strong {
+    font-size: clamp(1.45rem, 8vw, 2rem);
+    line-height: 1;
+  }
+
+  .finance-summary .payment-values {
+    display: grid;
+    gap: 10px;
+  }
+
+  .finance-summary .payment-values p {
+    display: grid;
+    grid-template-columns: auto minmax(64px, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .finance-summary .payment-values strong {
+    margin-left: 0;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .finance-summary .payment-values .note {
+    display: block;
+    max-width: none;
+    margin-top: 4px;
+    line-height: 1.75;
+  }
+
+  .finance-summary .category-bars {
+    gap: 18px;
+  }
+
+  .finance-summary .bar-line {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding-right: 0;
+  }
+
+  .finance-summary .bar-line div:first-child {
+    display: contents;
+  }
+
+  .finance-summary .bar-line div:first-child span,
+  .finance-summary .bar-line div:first-child strong,
+  .finance-summary .bar-line small {
+    min-width: 0;
+    font-size: 0.86rem;
+  }
+
+  .finance-summary .bar-line div:first-child strong {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .finance-summary .bar {
+    grid-column: 1 / 2;
+    min-width: 0;
+  }
+
+  .finance-summary .bar-line small {
+    position: static;
+    grid-column: 2 / 3;
+    justify-self: end;
+    align-self: center;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
   .transport, .ticket {
     grid-template-columns: 1fr auto;
   }
