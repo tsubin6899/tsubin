@@ -22,6 +22,7 @@
 
   var defaults = {
     eurRate: 35.2,
+    usdRate: 31.5,
     tripCode: firebaseSettings.tripCode || "SOUTH-ITALY-2026",
     people: ["祖斌", "旅伴 2", "旅伴 3", "旅伴 4"],
     expenses: [],
@@ -55,11 +56,11 @@
   function bindElements() {
     [
       "syncStatus", "tripCodeForm", "tripCode", "totalSpent", "expenseCount", "averageShare",
-      "travelerCount", "settleCount", "eurRate", "expenseForm", "date", "title", "category",
+      "travelerCount", "settleCount", "eurRate", "usdRate", "expenseForm", "date", "title", "category",
       "amount", "currency", "paidBy", "splitWith", "splitModeEqual", "splitModeCustom",
       "splitRemainder", "selectAll", "selectNone", "personForm",
       "personName", "personList", "settlements", "balances", "categories", "ledger",
-      "filterCategory", "exportCsv", "resetData", "closePeriod", "periods",
+      "filterCategory", "exportCsv", "exportBackup", "importBackup", "backupFile", "resetData", "closePeriod", "periods",
       "tripGrandTotal", "tripGrandCount", "tripPerPerson", "tripPeopleCount", "tripCategoryChart",
       "peoplePanel"
     ].forEach(function (id) {
@@ -72,6 +73,7 @@
     elements.personForm.addEventListener("submit", addPerson);
     elements.tripCodeForm.addEventListener("submit", changeTripCode);
     elements.eurRate.addEventListener("change", updateRate);
+    elements.usdRate.addEventListener("change", updateRate);
     elements.filterCategory.addEventListener("change", renderLedger);
     elements.amount.addEventListener("input", updateSplitModeUi);
     elements.currency.addEventListener("change", updateSplitModeUi);
@@ -80,6 +82,9 @@
     elements.selectAll.addEventListener("click", function () { setAllSplit(true); });
     elements.selectNone.addEventListener("click", function () { setAllSplit(false); });
     elements.exportCsv.addEventListener("click", exportCsv);
+    elements.exportBackup.addEventListener("click", exportBackup);
+    elements.importBackup.addEventListener("click", function () { elements.backupFile.click(); });
+    elements.backupFile.addEventListener("change", importBackup);
     elements.resetData.addEventListener("click", resetData);
     elements.closePeriod.addEventListener("click", closeCurrentPeriod);
     if (mobilePeopleQuery.addEventListener) {
@@ -116,6 +121,7 @@
       var parsed = JSON.parse(raw);
       return {
         eurRate: Number(parsed.eurRate) || defaults.eurRate,
+        usdRate: Number(parsed.usdRate) || defaults.usdRate,
         tripCode: savedCode || parsed.tripCode || defaults.tripCode,
         people: cleanPeople(parsed.people || defaults.people),
         expenses: Array.isArray(parsed.expenses) ? parsed.expenses.map(normalizeExpense) : [],
@@ -171,6 +177,7 @@
         var data = doc.data() || {};
         if (Array.isArray(data.people) && data.people.length) state.people = cleanPeople(data.people);
         state.eurRate = Number(data.eurRate) || state.eurRate;
+        state.usdRate = Number(data.usdRate) || state.usdRate;
       }
       saveState();
       render();
@@ -241,7 +248,9 @@
   }
 
   function toTwd(amount, currencyCode) {
-    return currencyCode === "EUR" ? Number(amount) * state.eurRate : Number(amount);
+    if (currencyCode === "EUR") return Number(amount) * state.eurRate;
+    if (currencyCode === "USD") return Number(amount) * state.usdRate;
+    return Number(amount);
   }
 
   function cleanPeople(people) {
@@ -356,6 +365,7 @@
 
   function originalMoney(value, currencyCode) {
     if (currencyCode === "EUR") return "EUR " + Number(value || 0).toFixed(2);
+    if (currencyCode === "USD") return "USD " + Number(value || 0).toFixed(2);
     return currency(value || 0);
   }
 
@@ -483,6 +493,7 @@
       tripRef().collection("settings").doc("main").set({
         people: window.firebase.firestore.FieldValue.arrayUnion(name),
         eurRate: Number(state.eurRate) || defaults.eurRate,
+        usdRate: Number(state.usdRate) || defaults.usdRate,
         updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
     }
@@ -531,11 +542,13 @@
 
   function updateRate() {
     state.eurRate = Number(elements.eurRate.value) || defaults.eurRate;
+    state.usdRate = Number(elements.usdRate.value) || defaults.usdRate;
     state.expenses = state.expenses.map(normalizeExpense);
     saveState();
     if (syncMode === "firebase" && !isRemoteUpdate) {
       tripRef().collection("settings").doc("main").set({
         eurRate: state.eurRate,
+        usdRate: state.usdRate,
         updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
     }
@@ -632,6 +645,7 @@
   function render() {
     elements.tripCode.value = state.tripCode;
     elements.eurRate.value = state.eurRate;
+    elements.usdRate.value = state.usdRate;
     renderPeopleControls();
     renderSummary();
     renderSettlements();
@@ -764,7 +778,7 @@
       return category === "全部" || expense.category === category;
     });
     elements.ledger.innerHTML = rows.map(function (expense) {
-      var original = expense.currency === "EUR" ? "EUR " + Number(expense.amount).toFixed(2) : currency(expense.amount);
+      var original = originalMoney(expense.amount, expense.currency);
       var status = expense.settlementId ? "已結帳" : "未結";
       var splitLabel = splitSummary(expense);
       return '<div class="ledger-row"><div class="ledger-main"><span class="ledger-title">' +
@@ -830,11 +844,178 @@
       ].map(csvCell).join(",");
     });
     var csv = "\ufeff" + header.join(",") + "\n" + rows.join("\n");
-    var blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    downloadTextFile(csv, "south-italy-expenses.csv", "text/csv;charset=utf-8");
+  }
+
+  function exportBackup() {
+    var dateStamp = new Date().toISOString().slice(0, 10);
+    var payload = {
+      schemaVersion: 1,
+      exportedAt: new Date().toISOString(),
+      tripCode: state.tripCode,
+      people: state.people,
+      eurRate: state.eurRate,
+      usdRate: state.usdRate,
+      expenses: state.expenses,
+      periods: state.periods
+    };
+    downloadTextFile(
+      JSON.stringify(payload, null, 2),
+      "italy-trip-expense-backup-" + dateStamp + ".json",
+      "application/json;charset=utf-8"
+    );
+  }
+
+  function importBackup(event) {
+    var file = event.target.files && event.target.files[0];
+    elements.backupFile.value = "";
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        applyImportedBackup(JSON.parse(String(reader.result || "")));
+      } catch (error) {
+        alert("匯入失敗：請確認選到的是分帳 APP 匯出的 JSON 備份檔。");
+      }
+    };
+    reader.onerror = function () {
+      alert("匯入失敗：無法讀取這個檔案。");
+    };
+    reader.readAsText(file, "utf-8");
+  }
+
+  function applyImportedBackup(data) {
+    var imported = prepareBackupData(data);
+    var message = "匯入會用備份覆蓋目前帳本資料。\n\n" +
+      "備份支出：" + imported.expenses.length + " 筆\n" +
+      "備份旅伴：" + imported.people.length + " 位\n\n" +
+      "如果目前是 Firebase 同步模式，也會覆蓋雲端資料。確定要匯入嗎？";
+    if (!confirm(message)) return;
+
+    if (syncMode === "firebase") {
+      setSyncStatus("正在匯入備份並同步到雲端...");
+      replaceRemoteData(imported).then(function () {
+        state.people = imported.people;
+        state.eurRate = imported.eurRate;
+        state.usdRate = imported.usdRate;
+        state.expenses = imported.expenses;
+        state.periods = imported.periods;
+        saveState();
+        render();
+        setSyncStatus("已匯入備份：" + state.tripCode);
+      }).catch(function (error) {
+        setSyncStatus("匯入失敗：" + readableError(error));
+      });
+      return;
+    }
+
+    state.people = imported.people;
+    state.eurRate = imported.eurRate;
+    state.usdRate = imported.usdRate;
+    state.expenses = imported.expenses;
+    state.periods = imported.periods;
+    saveState();
+    render();
+  }
+
+  function prepareBackupData(data) {
+    if (!data || !Array.isArray(data.expenses)) throw new Error("Invalid backup");
+    var eurRate = Number(data.eurRate) || defaults.eurRate;
+    var usdRate = Number(data.usdRate) || defaults.usdRate;
+    var previousEurRate = state.eurRate;
+    var previousUsdRate = state.usdRate;
+    state.eurRate = eurRate;
+    state.usdRate = usdRate;
+    var expenses = data.expenses.map(normalizeExpense);
+    state.eurRate = previousEurRate;
+    state.usdRate = previousUsdRate;
+    return {
+      people: cleanPeople(data.people || defaults.people),
+      eurRate: eurRate,
+      usdRate: usdRate,
+      expenses: expenses,
+      periods: Array.isArray(data.periods) ? data.periods.map(normalizePeriod) : []
+    };
+  }
+
+  function replaceRemoteData(imported) {
+    var root = tripRef();
+    return Promise.all([
+      root.collection("expenses").get(),
+      root.collection("settlementPeriods").get()
+    ]).then(function (snapshots) {
+      var operations = [];
+      snapshots.forEach(function (snapshot) {
+        snapshot.docs.forEach(function (doc) {
+          operations.push(function (batch) { batch.delete(doc.ref); });
+        });
+      });
+      operations.push(function (batch) {
+        batch.set(root.collection("settings").doc("main"), {
+          people: imported.people,
+          eurRate: imported.eurRate,
+          usdRate: imported.usdRate,
+          updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      });
+      imported.expenses.forEach(function (expense) {
+        expense.id = safeDocId(expense.id || uid());
+        operations.push(function (batch) {
+          batch.set(root.collection("expenses").doc(expense.id), {
+            date: expense.date,
+            title: expense.title,
+            category: expense.category,
+            amount: expense.amount,
+            currency: expense.currency,
+            paidBy: expense.paidBy,
+            splitWith: expense.splitWith,
+            splitMode: expense.splitMode,
+            splitShares: expense.splitShares,
+            settlementId: expense.settlementId || null,
+            clientCreatedAt: expense.clientCreatedAt || Date.now(),
+            createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
+          });
+        });
+      });
+      imported.periods.forEach(function (period) {
+        period.id = safeDocId(period.id || uid());
+        operations.push(function (batch) {
+          batch.set(root.collection("settlementPeriods").doc(period.id), {
+            title: period.title,
+            expenseIds: period.expenseIds,
+            transfers: period.transfers,
+            total: period.total,
+            clientCreatedAt: period.clientCreatedAt || Date.now(),
+            createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
+          });
+        });
+      });
+      return commitBatchOperations(operations);
+    });
+  }
+
+  function commitBatchOperations(operations) {
+    var index = 0;
+    function commitNext() {
+      if (index >= operations.length) return Promise.resolve();
+      var batch = db.batch();
+      var count = 0;
+      while (index < operations.length && count < 450) {
+        operations[index](batch);
+        index += 1;
+        count += 1;
+      }
+      return batch.commit().then(commitNext);
+    }
+    return commitNext();
+  }
+
+  function downloadTextFile(text, filename, type) {
+    var blob = new Blob([text], { type: type });
     var url = URL.createObjectURL(blob);
     var link = document.createElement("a");
     link.href = url;
-    link.download = "south-italy-expenses.csv";
+    link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -850,6 +1031,10 @@
 
   function csvCell(value) {
     return '"' + String(value).replace(/"/g, '""') + '"';
+  }
+
+  function safeDocId(id) {
+    return String(id || uid()).replace(/[\/#?\[\]]/g, "-").slice(0, 120) || uid();
   }
 
   function sumTwd(total, expense) {

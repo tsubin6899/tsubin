@@ -23,7 +23,10 @@
       </a>
       <nav class="top-actions" aria-label="主要操作">
         <button class="icon-button" id="exportCsv" type="button">CSV</button>
+        <button class="icon-button" id="exportBackup" type="button">備份</button>
+        <button class="icon-button" id="importBackup" type="button">匯入</button>
         <button class="icon-button danger" id="resetData" type="button">Reset</button>
+        <input id="backupFile" type="file" accept="application/json,.json" hidden>
       </nav>
     </header>
 
@@ -66,6 +69,13 @@
           </label>
           <small>1 EUR 折合 TWD</small>
         </article>
+        <article class="metric">
+          <span>美金匯率</span>
+          <label class="rate-control">
+            <input id="usdRate" type="number" min="0" step="0.01" inputmode="decimal">
+          </label>
+          <small>1 USD 折合 TWD</small>
+        </article>
       </section>
 
       <section class="workspace">
@@ -107,6 +117,7 @@
               <select id="currency">
                 <option value="TWD">TWD</option>
                 <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
               </select>
             </label>
             <label>

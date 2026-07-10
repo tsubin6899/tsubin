@@ -1,4 +1,4 @@
-const CACHE_NAME = "sud-italia-pwa-v2";
+const CACHE_NAME = "sud-italia-pwa-v3";
 const APP_SHELL = [
   "/",
   "/index.html",
