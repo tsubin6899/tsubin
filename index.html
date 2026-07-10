@@ -168,6 +168,7 @@ p, h1, h2, h3, figure {
 .mobile-expense-link {
   display: inline-flex;
   flex-shrink: 0;
+  margin-left: auto;
   min-height: 38px;
   padding: 0 14px;
   border: 1px solid rgba(185, 80, 57, 0.24);
@@ -179,22 +180,6 @@ p, h1, h2, h3, figure {
   font-size: 0.86rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-}
-
-.updated {
-  flex-shrink: 0;
-  border-left: 1px solid var(--rule);
-  padding-left: 20px;
-  color: var(--ink-soft);
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  line-height: 1.55;
-}
-
-.updated strong {
-  color: var(--ink);
-  font-size: 0.78rem;
-  font-weight: 500;
 }
 
 main {
@@ -2100,10 +2085,6 @@ body > footer {
     gap: 10px;
   }
 
-  .updated {
-    display: none;
-  }
-
   h1 {
     font-size: 2.48rem;
   }
@@ -2385,7 +2366,6 @@ body > footer {
         <a href="#personal">個人支出</a>
       </nav>
       <a class="mobile-expense-link" href="expense-app/index.html">分帳</a>
-      <div class="updated">資料更新<br><strong>2026.06.23</strong></div>
     </header>
 
     <main>
