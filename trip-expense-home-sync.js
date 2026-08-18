@@ -2,7 +2,7 @@
   "use strict";
 
   var firebaseSettings = window.TRIP_EXPENSE_FIREBASE || {};
-  var baseFinance = window.TRIP_DATA && window.TRIP_DATA.finance ? JSON.parse(JSON.stringify(window.TRIP_DATA.finance)) : null;
+  var tripData = window.TRIP_DATA || null;
   var state = {
     people: [],
     expenses: [],
@@ -11,7 +11,7 @@
   };
   var tones = ["ink", "sage", "red", "sand"];
 
-  if (!baseFinance || !firebaseSettings.enabled || !firebaseSettings.config || !window.firebase) {
+  if (!tripData || !firebaseSettings.enabled || !firebaseSettings.config || !window.firebase) {
     setStatus("分帳同步尚未啟用", "neutral");
     return;
   }
@@ -55,24 +55,21 @@
     var sharedTotal = expenses.reduce(function (sum, expense) { return sum + expense.twd; }, 0);
     var openExpenses = expenses.filter(function (expense) { return !expense.settlementId; });
     var openTotal = openExpenses.reduce(function (sum, expense) { return sum + expense.twd; }, 0);
-    var combinedTotal = Number(baseFinance.total || 0) + sharedTotal;
-    var combinedPaid = Number(baseFinance.paid || 0) + sharedTotal;
-    var combinedPending = Number(baseFinance.pending || 0);
-    var peopleCount = people.length || Number(window.TRIP_DATA.travelers || 0) || 1;
-    var combinedCategories = mergeCategories(baseFinance.categories || [], categoryTotals(expenses));
+    var peopleCount = people.length || Number(tripData.travelers || 0) || 1;
+    var categories = categoryTotals(expenses);
 
-    setText("known-total", money(combinedTotal));
-    setText("paid-total", money(combinedPaid));
-    setText("pending-total", money(combinedPending));
-    setText("per-person", money(combinedTotal / peopleCount));
-    setText("paid-caption", "含共同分帳 " + money(sharedTotal));
-    setText("pending-caption", "待付款項目維持原行程預算");
+    setText("known-total", money(sharedTotal));
+    setText("paid-total", money(sharedTotal));
+    setText("pending-total", money(0));
+    setText("per-person", money(sharedTotal / peopleCount));
+    setText("paid-caption", "共同分帳已記錄 " + expenses.length + " 筆");
+    setText("pending-caption", "目前沒有待付款項目");
     setText("per-day", peopleCount + " 位旅伴平均");
-    setText("donut-percent", percent(combinedPaid, combinedTotal) + "%");
-    setText("paid-side", money(combinedPaid));
-    setText("pending-side", money(combinedPending));
-    setDonut(percent(combinedPaid, combinedTotal));
-    renderCategoryBars("category-bars", combinedCategories, combinedTotal);
+    setText("donut-percent", sharedTotal ? "100%" : "0%");
+    setText("paid-side", money(sharedTotal));
+    setText("pending-side", money(0));
+    setDonut(sharedTotal ? "100" : "0");
+    renderCategoryBars("category-bars", categories, sharedTotal);
 
     setText("shared-expense-total", money(sharedTotal));
     setText("shared-expense-count", expenses.length + " 筆共同支出");
@@ -80,7 +77,7 @@
     setText("shared-expense-people", peopleCount + " 位旅伴");
     setText("shared-open-total", money(openTotal));
     setText("shared-open-count", openExpenses.length + " 筆尚未結帳");
-    renderCategoryBars("shared-category-bars", categoryTotals(expenses), sharedTotal);
+    renderCategoryBars("shared-category-bars", categories, sharedTotal);
 
     setText("personal-total", money(sharedTotal / peopleCount));
     setText("daily-average", expenses.length + " 筆");
@@ -133,18 +130,6 @@
     });
     return Object.keys(groups).map(function (name, index) {
       return { name: name, amount: groups[name], tone: tones[index % tones.length] };
-    }).sort(function (a, b) { return b.amount - a.amount; });
-  }
-
-  function mergeCategories(baseCategories, sharedCategories) {
-    var groups = {};
-    baseCategories.concat(sharedCategories).forEach(function (category) {
-      if (!groups[category.name]) groups[category.name] = { name: category.name, amount: 0, tone: category.tone };
-      groups[category.name].amount += Number(category.amount || 0);
-    });
-    return Object.keys(groups).map(function (name, index) {
-      groups[name].tone = groups[name].tone || tones[index % tones.length];
-      return groups[name];
     }).sort(function (a, b) { return b.amount - a.amount; });
   }
 

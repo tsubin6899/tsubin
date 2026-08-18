@@ -2593,20 +2593,10 @@ body > footer {
             <div class="payment-values">
               <p><span class="dot paid"></span>已付款 <strong id="paid-side">--</strong></p>
               <p><span class="dot pending"></span>待付款 <strong id="pending-side">--</strong></p>
-              <p class="note">尚未估價：油資、停車、高速公路費、保險、網路、餐飲與額外消費。</p>
+              <p class="note">所有數字皆從共同分帳 App 即時同步。</p>
             </div>
           </div>
           <div class="category-bars" id="category-bars" aria-label="支出分類比例"></div>
-        </div>
-        <div class="panel expense-ledger reveal">
-          <header class="section-head compact">
-            <div>
-              <p class="eyebrow">Payment Queue</p>
-              <h2>待付款明細</h2>
-            </div>
-            <span class="pill alert">住宿 6 筆</span>
-          </header>
-          <div class="ledger" id="pending-ledger"></div>
         </div>
         <section class="panel shared-expense-panel reveal" aria-label="共同分帳即時統計">
           <header class="section-head compact">
@@ -4277,10 +4267,6 @@ window.TRIP_CONTENT = {
         '<small>' + share + "%</small></div>";
     }).join("");
 
-    document.getElementById("pending-ledger").innerHTML = finance.pendingItems.map(function (item) {
-      return '<div class="ledger-row"><time>' + item.date + '</time><div><strong>' + item.name +
-        '</strong><small>' + item.source + '</small></div><b>' + currency(item.amount) + "</b></div>";
-    }).join("");
   }
 
   function renderAttractions() {
