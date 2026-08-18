@@ -464,6 +464,16 @@ button:focus-visible {
   font-weight: 900;
 }
 
+.ledger-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ledger-row .edit-button {
+  color: var(--teal);
+}
+
 .analysis-grid {
   grid-template-columns: 1fr 1fr 1fr;
   margin: 18px 0;

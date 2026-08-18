@@ -13,6 +13,7 @@
   var syncMode = "local";
   var isRemoteUpdate = false;
   var lastCloudSnapshotAt = 0;
+  var editingExpenseId = null;
 
   var money = new Intl.NumberFormat("zh-TW", {
     style: "currency",
@@ -56,7 +57,7 @@
   function bindElements() {
     [
       "syncStatus", "tripCodeForm", "tripCode", "totalSpent", "expenseCount", "averageShare",
-      "travelerCount", "settleCount", "eurRate", "usdRate", "expenseForm", "date", "title", "category",
+      "travelerCount", "settleCount", "eurRate", "usdRate", "expenseForm", "submitExpense", "date", "title", "category",
       "amount", "currency", "paidBy", "splitWith", "splitModeEqual", "splitModeCustom",
       "splitRemainder", "selectAll", "selectNone", "personForm",
       "personName", "personList", "settlements", "balances", "categories", "ledger",
@@ -438,7 +439,14 @@
       alert(splitDetails.error);
       return;
     }
+    var existingExpense = editingExpenseId && state.expenses.filter(function (item) { return item.id === editingExpenseId; })[0];
+    if (editingExpenseId && !existingExpense) {
+      resetExpenseForm();
+      alert("這筆支出已不存在，請重新輸入。");
+      return;
+    }
     var expense = normalizeExpense({
+      id: existingExpense ? existingExpense.id : "",
       date: elements.date.value,
       title: elements.title.value.trim(),
       category: elements.category.value,
@@ -448,10 +456,11 @@
       splitWith: splitDetails.splitWith,
       splitMode: splitDetails.splitMode,
       splitShares: splitDetails.splitShares,
-      clientCreatedAt: Date.now()
+      settlementId: existingExpense ? existingExpense.settlementId : null,
+      clientCreatedAt: existingExpense ? existingExpense.clientCreatedAt : Date.now()
     });
     if (syncMode === "firebase") {
-      tripRef().collection("expenses").add({
+      var payload = {
         date: expense.date,
         title: expense.title,
         category: expense.category,
@@ -461,15 +470,27 @@
         splitWith: expense.splitWith,
         splitMode: expense.splitMode,
         splitShares: expense.splitShares,
-        settlementId: null,
+        settlementId: expense.settlementId,
         clientCreatedAt: expense.clientCreatedAt,
-        createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
-      }).then(afterExpenseSaved).catch(function (error) {
-        setSyncStatus("新增失敗：" + readableError(error));
-      });
+        updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if (existingExpense) {
+        tripRef().collection("expenses").doc(expense.id).update(payload).then(afterExpenseSaved).catch(function (error) {
+          setSyncStatus("修改失敗：" + readableError(error));
+        });
+      } else {
+        payload.createdAt = window.firebase.firestore.FieldValue.serverTimestamp();
+        tripRef().collection("expenses").add(payload).then(afterExpenseSaved).catch(function (error) {
+          setSyncStatus("新增失敗：" + readableError(error));
+        });
+      }
     } else {
-      expense.id = "expense-" + Date.now();
-      state.expenses.unshift(expense);
+      if (existingExpense) {
+        state.expenses = state.expenses.map(function (item) { return item.id === expense.id ? expense : item; });
+      } else {
+        expense.id = "expense-" + Date.now();
+        state.expenses.unshift(expense);
+      }
       saveState();
       afterExpenseSaved();
       render();
@@ -477,9 +498,45 @@
   }
 
   function afterExpenseSaved() {
+    resetExpenseForm();
+  }
+
+  function resetExpenseForm() {
+    editingExpenseId = null;
     elements.expenseForm.reset();
+    elements.submitExpense.textContent = "加入";
     elements.splitModeEqual.checked = true;
     setDefaultDate();
+    renderPeopleControls();
+  }
+
+  function editExpense(id) {
+    var expense = state.expenses.filter(function (item) { return item.id === id; })[0];
+    if (!expense) return;
+    if (expense.settlementId) {
+      alert("這筆支出已結帳，為了維持已完成的分帳結果，不能直接修改。");
+      return;
+    }
+    editingExpenseId = id;
+    renderPeopleControls();
+    elements.date.value = expense.date;
+    elements.title.value = expense.title;
+    elements.category.value = expense.category;
+    elements.amount.value = expense.amount;
+    elements.currency.value = expense.currency;
+    elements.paidBy.value = expense.paidBy;
+    elements.splitModeCustom.checked = expense.splitMode === "custom";
+    elements.splitModeEqual.checked = expense.splitMode !== "custom";
+    Array.from(elements.splitWith.querySelectorAll("input[type='checkbox']")).forEach(function (input) {
+      input.checked = expense.splitWith.indexOf(input.value) >= 0;
+    });
+    expense.splitWith.forEach(function (person) {
+      var input = shareInputFor(person);
+      if (input && expense.splitMode === "custom") input.value = Number((expense.splitShares || {})[person] || 0);
+    });
+    elements.submitExpense.textContent = "儲存修改";
+    updateSplitModeUi();
+    elements.expenseForm.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function addPerson(event) {
@@ -787,11 +844,15 @@
         '<span>' + escapeHtml(expense.category) + '</span></span> / ' + escapeHtml(expense.paidBy) +
         " 先付 / 分攤 " + splitLabel +
         '</span></div><div class="ledger-amount">' + currency(expense.twd) +
-        '<div class="ledger-meta">' + original + '</div></div><button type="button" data-id="' +
-        escapeHtml(expense.id) + '">刪除</button></div>';
+        '<div class="ledger-meta">' + original + '</div></div><div class="ledger-actions">' +
+        (expense.settlementId ? "" : '<button type="button" class="edit-button" data-action="edit" data-id="' + escapeHtml(expense.id) + '">編輯</button>') +
+        '<button type="button" data-action="delete" data-id="' + escapeHtml(expense.id) + '">刪除</button></div></div>';
     }).join("") || emptyHtml("目前沒有支出紀錄");
     Array.from(elements.ledger.querySelectorAll("button")).forEach(function (button) {
-      button.addEventListener("click", function () { deleteExpense(button.dataset.id); });
+      button.addEventListener("click", function () {
+        if (button.dataset.action === "edit") editExpense(button.dataset.id);
+        else deleteExpense(button.dataset.id);
+      });
     });
   }
 
