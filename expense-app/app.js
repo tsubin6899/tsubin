@@ -834,19 +834,35 @@
     var rows = state.expenses.filter(function (expense) {
       return category === "全部" || expense.category === category;
     });
-    elements.ledger.innerHTML = rows.map(function (expense) {
-      var original = originalMoney(expense.amount, expense.currency);
-      var status = expense.settlementId ? "已結帳" : "未結";
-      var splitLabel = splitSummary(expense);
-      return '<div class="ledger-row"><div class="ledger-main"><span class="ledger-title">' +
-        escapeHtml(expense.title) + ' <small class="status-tag">' + status + '</small></span><span class="ledger-meta">' +
-        escapeHtml(expense.date) + ' / <span class="category-inline">' + categoryIcon(expense.category) +
-        '<span>' + escapeHtml(expense.category) + '</span></span> / ' + escapeHtml(expense.paidBy) +
-        " 先付 / 分攤 " + splitLabel +
-        '</span></div><div class="ledger-amount">' + currency(expense.twd) +
-        '<div class="ledger-meta">' + original + '</div></div><div class="ledger-actions">' +
-        (expense.settlementId ? "" : '<button type="button" class="edit-button" data-action="edit" data-id="' + escapeHtml(expense.id) + '">編輯</button>') +
-        '<button type="button" data-action="delete" data-id="' + escapeHtml(expense.id) + '">刪除</button></div></div>';
+    var groups = {};
+    rows.forEach(function (expense) {
+      var date = expense.date || "未填日期";
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(expense);
+    });
+    elements.ledger.innerHTML = Object.keys(groups).sort(function (a, b) {
+      if (a === "未填日期") return 1;
+      if (b === "未填日期") return -1;
+      return b.localeCompare(a);
+    }).map(function (date) {
+      var dayExpenses = groups[date];
+      var dayTotal = dayExpenses.reduce(sumTwd, 0);
+      var rowsHtml = dayExpenses.map(function (expense) {
+        var original = originalMoney(expense.amount, expense.currency);
+        var status = expense.settlementId ? "已結帳" : "未結";
+        var splitLabel = splitSummary(expense);
+        return '<div class="ledger-row"><div class="ledger-main"><span class="ledger-title">' +
+          escapeHtml(expense.title) + ' <small class="status-tag">' + status + '</small></span><span class="ledger-meta">' +
+          '<span class="category-inline">' + categoryIcon(expense.category) + '<span>' + escapeHtml(expense.category) +
+          '</span></span> / ' + escapeHtml(expense.paidBy) + " 先付 / 分攤 " + splitLabel +
+          '</span></div><div class="ledger-amount">' + currency(expense.twd) +
+          '<div class="ledger-meta">' + original + '</div></div><div class="ledger-actions">' +
+          (expense.settlementId ? "" : '<button type="button" class="edit-button" data-action="edit" data-id="' + escapeHtml(expense.id) + '">編輯</button>') +
+          '<button type="button" data-action="delete" data-id="' + escapeHtml(expense.id) + '">刪除</button></div></div>';
+      }).join("");
+      return '<section class="ledger-date-group"><header class="ledger-date-header"><strong>' +
+        escapeHtml(date.replace(/-/g, "/")) + '</strong><span>' + dayExpenses.length + " 筆 / " + currency(dayTotal) +
+        '</span></header>' + rowsHtml + "</section>";
     }).join("") || emptyHtml("目前沒有支出紀錄");
     Array.from(elements.ledger.querySelectorAll("button")).forEach(function (button) {
       button.addEventListener("click", function () {

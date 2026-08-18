@@ -682,6 +682,37 @@ button:focus-visible {
   align-items: flex-start;
 }
 
+.ledger-date-group {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.ledger-date-group + .ledger-date-group {
+  margin-top: 14px;
+}
+
+.ledger-date-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--mint);
+  color: var(--teal);
+  font-size: 0.9rem;
+}
+
+.ledger-date-group .ledger-row {
+  border-width: 0 0 1px;
+  border-radius: 0;
+}
+
+.ledger-date-group .ledger-row:last-child {
+  border-bottom: 0;
+}
+
 .ledger-main {
   display: grid;
   gap: 4px;
@@ -783,5 +814,10 @@ button:focus-visible {
 
   .ledger-amount {
     text-align: left;
+  }
+
+  .ledger-date-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
