@@ -1,4 +1,4 @@
-const CACHE_NAME = "sud-italia-pwa-v8";
+const CACHE_NAME = "sud-italia-pwa-v9";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -11,7 +11,8 @@ const APP_SHELL = [
   "/expense-app/index.html",
   "/expense-app/styles.css",
   "/expense-app/app.js",
-  "/expense-app/firebase-config.js"
+  "/expense-app/firebase-config.js",
+  "/trip-expense-home-sync.js"
 ];
 
 self.addEventListener("install", (event) => {
