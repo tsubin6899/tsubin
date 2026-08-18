@@ -96,6 +96,14 @@ button {
   padding: 0 12px;
 }
 
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  text-decoration: none;
+}
+
 .icon-button.danger {
   color: var(--rose);
 }
