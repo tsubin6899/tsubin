@@ -254,6 +254,22 @@
           <div class="trip-category-chart" id="tripCategoryChart"></div>
         </div>
       </section>
+
+      <section class="panel expense-calendar-panel">
+        <header class="panel-header calendar-panel-header">
+          <div>
+            <p>Monthly Spending</p>
+            <h2>每日消費日曆</h2>
+          </div>
+          <div class="calendar-month-controls" aria-label="切換月份">
+            <button class="icon-button" id="calendarPrevious" type="button" aria-label="上個月">&larr;</button>
+            <strong id="calendarMonthLabel" aria-live="polite"></strong>
+            <button class="icon-button" id="calendarNext" type="button" aria-label="下個月">&rarr;</button>
+          </div>
+        </header>
+        <div class="expense-calendar" id="expenseCalendar" role="grid" aria-label="每日消費日曆"></div>
+        <section class="calendar-details" id="calendarDetails" aria-live="polite"></section>
+      </section>
     </main>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>

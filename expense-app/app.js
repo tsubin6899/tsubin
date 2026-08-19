@@ -42,6 +42,8 @@
   var state = loadState();
   var elements = {};
   var mobilePeopleQuery = window.matchMedia("(max-width: 680px)");
+  var calendarMonth = monthKey(new Date());
+  var selectedCalendarDate = "";
 
   document.addEventListener("DOMContentLoaded", init);
 
@@ -63,7 +65,7 @@
       "personName", "personList", "settlements", "balances", "categories", "ledger",
       "filterCategory", "exportCsv", "exportBackup", "importBackup", "backupFile", "resetData", "closePeriod", "periods",
       "tripGrandTotal", "tripGrandCount", "tripPerPerson", "tripPeopleCount", "tripCategoryChart",
-      "peoplePanel"
+      "calendarPrevious", "calendarNext", "calendarMonthLabel", "expenseCalendar", "calendarDetails", "peoplePanel"
     ].forEach(function (id) {
       elements[id] = document.getElementById(id);
     });
@@ -88,6 +90,8 @@
     elements.backupFile.addEventListener("change", importBackup);
     elements.resetData.addEventListener("click", resetData);
     elements.closePeriod.addEventListener("click", closeCurrentPeriod);
+    elements.calendarPrevious.addEventListener("click", function () { changeCalendarMonth(-1); });
+    elements.calendarNext.addEventListener("click", function () { changeCalendarMonth(1); });
     if (mobilePeopleQuery.addEventListener) {
       mobilePeopleQuery.addEventListener("change", placePeoplePanel);
     } else if (mobilePeopleQuery.addListener) {
@@ -711,6 +715,7 @@
     renderLedger();
     renderPeriods();
     renderTripTotals();
+    renderCalendar();
   }
 
   function renderPeopleControls() {
@@ -906,6 +911,88 @@
         currency(row.amount) + ' · ' + share + '%</span></div><div class="bar-track"><div class="bar-fill" style="width:' +
         width + '%"></div></div></div>';
     }).join("") : emptyHtml("目前沒有旅行支出資料");
+  }
+
+  function changeCalendarMonth(offset) {
+    calendarMonth = shiftMonth(calendarMonth, offset);
+    selectedCalendarDate = "";
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    var parts = calendarMonth.split("-");
+    var year = Number(parts[0]);
+    var month = Number(parts[1]);
+    var daysInMonth = new Date(year, month, 0).getDate();
+    var firstWeekday = new Date(year, month - 1, 1).getDay();
+    var byDate = {};
+    state.expenses.forEach(function (expense) {
+      if (!expense.date || expense.date.slice(0, 7) !== calendarMonth) return;
+      if (!byDate[expense.date]) byDate[expense.date] = [];
+      byDate[expense.date].push(expense);
+    });
+    if (!selectedCalendarDate || selectedCalendarDate.slice(0, 7) !== calendarMonth) {
+      var expenseDates = Object.keys(byDate).sort();
+      selectedCalendarDate = expenseDates.length ? expenseDates[expenseDates.length - 1] : calendarDateKey(year, month, 1);
+    }
+
+    elements.calendarMonthLabel.textContent = year + " 年 " + month + " 月";
+    var weekdayHtml = ["日", "一", "二", "三", "四", "五", "六"].map(function (day) {
+      return '<span class="calendar-weekday">' + day + "</span>";
+    }).join("");
+    var dayHtml = Array(daysInMonth).fill(0).map(function (_, index) {
+      var day = index + 1;
+      var date = calendarDateKey(year, month, day);
+      var dayExpenses = byDate[date] || [];
+      var total = dayExpenses.reduce(sumTwd, 0);
+      var selected = date === selectedCalendarDate;
+      return '<button type="button" class="calendar-day' + (dayExpenses.length ? " has-expenses" : "") + (selected ? " selected" : "") +
+        '" data-date="' + date + '" aria-pressed="' + String(selected) + '"><span class="calendar-day-number">' + day +
+        '</span>' + (dayExpenses.length ? '<strong>' + calendarMoney(total) + '</strong><small>' + dayExpenses.length + " 筆</small>" : "") + "</button>";
+    }).join("");
+    var cells = Array(firstWeekday).fill('<span class="calendar-blank" aria-hidden="true"></span>').join("") + dayHtml;
+    var cellCount = firstWeekday + daysInMonth;
+    var trailing = (7 - cellCount % 7) % 7;
+    cells += Array(trailing).fill('<span class="calendar-blank" aria-hidden="true"></span>').join("");
+    elements.expenseCalendar.innerHTML = weekdayHtml + cells;
+    Array.from(elements.expenseCalendar.querySelectorAll(".calendar-day")).forEach(function (button) {
+      button.addEventListener("click", function () {
+        selectedCalendarDate = button.dataset.date;
+        renderCalendar();
+      });
+    });
+    renderCalendarDetails(byDate[selectedCalendarDate] || [], selectedCalendarDate);
+  }
+
+  function renderCalendarDetails(expenses, date) {
+    var total = expenses.reduce(sumTwd, 0);
+    elements.calendarDetails.innerHTML = '<header class="calendar-details-head"><div><p>' + escapeHtml(date.replace(/-/g, "/")) +
+      '</p><h3>當日消費</h3></div><strong>' + currency(total) + '</strong></header>' +
+      (expenses.length ? '<div class="calendar-detail-list">' + expenses.map(function (expense) {
+        var status = expense.settlementId ? "已結帳" : "未結";
+        return '<article class="calendar-detail-row"><div><strong>' + escapeHtml(expense.title) + '</strong><span>' +
+          categoryIcon(expense.category) + escapeHtml(expense.category) + " / " + escapeHtml(expense.paidBy) +
+          ' 先付 <small class="status-tag">' + status + '</small></span></div><b>' + currency(expense.twd) +
+          '<small>' + originalMoney(expense.amount, expense.currency) + "</small></b></article>";
+      }).join("") + "</div>" : '<div class="calendar-empty">這一天沒有支出</div>');
+  }
+
+  function monthKey(date) {
+    return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+  }
+
+  function shiftMonth(month, offset) {
+    var parts = month.split("-");
+    var date = new Date(Number(parts[0]), Number(parts[1]) - 1 + offset, 1);
+    return monthKey(date);
+  }
+
+  function calendarDateKey(year, month, day) {
+    return year + "-" + String(month).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+  }
+
+  function calendarMoney(value) {
+    return "NT$" + Math.round(value || 0).toLocaleString("zh-TW");
   }
 
   function exportCsv() {
