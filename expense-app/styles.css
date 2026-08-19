@@ -720,6 +720,16 @@ button:focus-visible {
   border-radius: 0;
 }
 
+@media (min-width: 681px) {
+  .ledger-list {
+    display: block;
+  }
+
+  .ledger-date-group {
+    width: 100%;
+  }
+}
+
 .ledger-date-group .ledger-row:last-child {
   border-bottom: 0;
 }
