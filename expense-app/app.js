@@ -27,7 +27,8 @@
     tripCode: firebaseSettings.tripCode || "SOUTH-ITALY-2026",
     people: ["祖斌", "旅伴 2", "旅伴 3", "旅伴 4"],
     expenses: [],
-    periods: []
+    periods: [],
+    locked: true
   };
 
   var categoryIcons = {
@@ -65,7 +66,7 @@
       "personName", "personList", "settlements", "balances", "categories", "ledger",
       "filterCategory", "exportCsv", "exportBackup", "importBackup", "backupFile", "resetData", "closePeriod", "periods",
       "tripGrandTotal", "tripGrandCount", "tripPerPerson", "tripPeopleCount", "tripCategoryChart",
-      "calendarPrevious", "calendarNext", "calendarMonthLabel", "expenseCalendar", "calendarDetails", "peoplePanel"
+      "calendarPrevious", "calendarNext", "calendarMonthLabel", "expenseCalendar", "calendarDetails", "peoplePanel", "lockBanner"
     ].forEach(function (id) {
       elements[id] = document.getElementById(id);
     });
@@ -130,7 +131,8 @@
         tripCode: savedCode || parsed.tripCode || defaults.tripCode,
         people: cleanPeople(parsed.people || defaults.people),
         expenses: Array.isArray(parsed.expenses) ? parsed.expenses.map(normalizeExpense) : [],
-        periods: Array.isArray(parsed.periods) ? parsed.periods.map(normalizePeriod) : []
+        periods: Array.isArray(parsed.periods) ? parsed.periods.map(normalizePeriod) : [],
+        locked: true
       };
     } catch (error) {
       return clone(defaults);
@@ -176,6 +178,7 @@
     }, 9000);
 
     var root = tripRef();
+    lockTripBook(root);
     unsubscribeSettings = root.collection("settings").doc("main").onSnapshot({ includeMetadataChanges: true }, function (doc) {
       isRemoteUpdate = true;
       if (doc.exists) {
@@ -184,6 +187,7 @@
         state.eurRate = Number(data.eurRate) || state.eurRate;
         state.usdRate = Number(data.usdRate) || state.usdRate;
       }
+      state.locked = true;
       saveState();
       render();
       isRemoteUpdate = false;
@@ -232,12 +236,29 @@
     return db.collection("tripExpenseBooks").doc(safeTripCode(state.tripCode));
   }
 
+  function lockTripBook(root) {
+    root.collection("settings").doc("main").set({
+      locked: true,
+      lockedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }).catch(function (error) {
+      setSyncStatus("帳本鎖定狀態無法寫入：" + readableError(error));
+    });
+  }
+
   function safeTripCode(code) {
     return String(code || defaults.tripCode).trim().replace(/[\/#?[\]]/g, "-").toUpperCase().slice(0, 40) || defaults.tripCode;
   }
 
   function setSyncStatus(text) {
     elements.syncStatus.textContent = text;
+  }
+
+  function isBookLocked() {
+    return state.locked === true;
+  }
+
+  function showLockedNotice() {
+    setSyncStatus("本次旅行已結案，帳本目前為唯讀模式。");
   }
 
   function setDefaultDate() {
@@ -434,6 +455,10 @@
 
   function addExpense(event) {
     event.preventDefault();
+    if (isBookLocked()) {
+      showLockedNotice();
+      return;
+    }
     var splitDetails = readSplitDetails();
     if (!splitDetails.splitWith.length) {
       alert("請至少選一位分攤對象。");
@@ -515,6 +540,10 @@
   }
 
   function editExpense(id) {
+    if (isBookLocked()) {
+      showLockedNotice();
+      return;
+    }
     var expense = state.expenses.filter(function (item) { return item.id === id; })[0];
     if (!expense) return;
     if (expense.settlementId) {
@@ -545,6 +574,10 @@
 
   function addPerson(event) {
     event.preventDefault();
+    if (isBookLocked()) {
+      showLockedNotice();
+      return;
+    }
     var name = elements.personName.value.trim();
     if (!name || state.people.indexOf(name) >= 0) return;
     state.people = cleanPeople(state.people.concat(name));
@@ -562,6 +595,10 @@
   }
 
   function removePerson(name) {
+    if (isBookLocked()) {
+      showLockedNotice();
+      return;
+    }
     var isUsed = state.expenses.some(function (expense) {
       return expense.paidBy === name || expense.splitWith.indexOf(name) >= 0;
     });
@@ -581,6 +618,10 @@
   }
 
   function deleteExpense(id) {
+    if (isBookLocked()) {
+      showLockedNotice();
+      return;
+    }
     var expense = state.expenses.filter(function (item) { return item.id === id; })[0];
     if (!expense) return;
     var title = expense.title || "未命名支出";
@@ -602,6 +643,10 @@
   }
 
   function updateRate() {
+    if (isBookLocked()) {
+      showLockedNotice();
+      return;
+    }
     state.eurRate = Number(elements.eurRate.value) || defaults.eurRate;
     state.usdRate = Number(elements.usdRate.value) || defaults.usdRate;
     state.expenses = state.expenses.map(normalizeExpense);
@@ -618,6 +663,10 @@
 
   function changeTripCode(event) {
     event.preventDefault();
+    if (isBookLocked()) {
+      showLockedNotice();
+      return;
+    }
     state.tripCode = safeTripCode(elements.tripCode.value);
     elements.tripCode.value = state.tripCode;
     saveState();
@@ -626,6 +675,10 @@
   }
 
   function closeCurrentPeriod() {
+    if (isBookLocked()) {
+      showLockedNotice();
+      return;
+    }
     var expenses = activeExpenses();
     if (!expenses.length) {
       alert("目前沒有未結支出。");
@@ -681,6 +734,10 @@
   }
 
   function resetData() {
+    if (isBookLocked()) {
+      showLockedNotice();
+      return;
+    }
     if (!confirm("確定要清空目前帳本？Firebase 模式會清空雲端支出與結帳紀錄。")) return;
     if (syncMode === "firebase") {
       Promise.all([
@@ -716,6 +773,25 @@
     renderPeriods();
     renderTripTotals();
     renderCalendar();
+    setBookLockState();
+  }
+
+  function setBookLockState() {
+    var locked = isBookLocked();
+    document.body.classList.toggle("book-locked", locked);
+    if (elements.lockBanner) elements.lockBanner.hidden = !locked;
+    [elements.tripCodeForm, elements.expenseForm, elements.personForm].forEach(function (form) {
+      if (!form) return;
+      Array.from(form.querySelectorAll("input, select, button")).forEach(function (control) {
+        control.disabled = locked;
+      });
+    });
+    [elements.eurRate, elements.usdRate, elements.importBackup, elements.resetData, elements.closePeriod].forEach(function (control) {
+      if (control) control.disabled = locked;
+    });
+    Array.from(elements.ledger.querySelectorAll("button")).forEach(function (button) {
+      button.disabled = locked;
+    });
   }
 
   function renderPeopleControls() {
@@ -1031,6 +1107,10 @@
   }
 
   function importBackup(event) {
+    if (isBookLocked()) {
+      showLockedNotice();
+      return;
+    }
     var file = event.target.files && event.target.files[0];
     elements.backupFile.value = "";
     if (!file) return;
@@ -1049,6 +1129,10 @@
   }
 
   function applyImportedBackup(data) {
+    if (isBookLocked()) {
+      showLockedNotice();
+      return;
+    }
     var imported = prepareBackupData(data);
     var message = "匯入會用備份覆蓋目前帳本資料。\n\n" +
       "備份支出：" + imported.expenses.length + " 筆\n" +
@@ -1224,6 +1308,9 @@
   }
 
   function syncStatusText(snapshot) {
+    if (isBookLocked()) {
+      return "已結案：" + state.tripCode + "（唯讀模式，共 " + state.expenses.length + " 筆支出）";
+    }
     var source = snapshot.metadata.fromCache ? "本機快取" : "雲端";
     var pending = snapshot.metadata.hasPendingWrites ? "，尚有資料待上傳" : "，雲端已確認";
     return "已同步：" + state.tripCode + "（" + source + pending + "，共 " + state.expenses.length + " 筆支出）";
